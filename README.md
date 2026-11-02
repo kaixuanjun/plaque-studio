@@ -7,6 +7,9 @@
 - 内置 **AI 编程插画引擎**：插画不是文生图，而是让大模型**直接写 Canvas 2D 代码**。
   产物是一段自包含 HTML，所以它既是一张插画，也是一段可以录成视频的动画。
 
+仓库：<https://github.com/kaixuanjun/plaque-studio>
+在线版：在仓库 `Settings → Pages` 选择 `main` 分支 `/ (root)` 保存即可得到 `https://kaixuanjun.github.io/plaque-studio/`（站点入口就是根目录的 `index.html`，无需构建）。
+
 ```
 index.html            入口（双击打开）
 css/app.css           编辑器外观
