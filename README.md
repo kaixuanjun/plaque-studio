@@ -130,3 +130,21 @@ Plaque.ai.generate({ brief, style, density, palette, target: 'layer' })
 - 视频导出依赖浏览器的 `MediaRecorder`；Edge / Chrome / Safari 新版均可，Firefox 会退回 WebM 或提示不支持。
 - 大模型接口走浏览器直连，需要服务端允许 CORS（OpenAI、DeepSeek、智谱、通义官方接口均允许；自建服务请放开 `Access-Control-Allow-Origin`）。
 - 本地自动保存到 `localStorage`（键 `plaque.autosave`），超过 4MB 会跳过（AI 插画代码较多时建议手动导出 JSON）。
+
+## 8. 部署
+
+### 静态托管 / GitHub Pages
+
+纯静态项目，任意静态主机皆可。GitHub Pages：仓库 Settings → Pages → Source 选 `Deploy from a branch`，分支 `main`、目录 `/ (root)`，几分钟后访问 `https://kaixuanjun.github.io/plaque-studio/`。
+
+### 热铁盒（Retinbox）
+
+`kaixuanjun.rth1.xyz` 是多项目共享站点，用增量接口只写自己的子目录，不会动到同站点其它项目：
+
+```powershell
+$env:RTH_API_KEY = "<你的密钥>"
+node tools/deploy-rth.mjs --dry    # 先看清单：16 个文件 / 约 315KB
+node tools/deploy-rth.mjs          # 真实上传，并自动做线上内容校验
+```
+
+目标地址 `https://kaixuanjun.rth1.xyz/plaque-studio/`。可用 `RTH_USER` / `RTH_DOMAIN` / `RTH_DIR` 覆盖默认值。
