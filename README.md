@@ -148,3 +148,5 @@ node tools/deploy-rth.mjs          # 真实上传，并自动做线上内容校�
 ```
 
 目标地址 `https://kaixuanjun.rth1.xyz/plaque-studio/`。可用 `RTH_USER` / `RTH_DOMAIN` / `RTH_DIR` 覆盖默认值。
+
+> 备注：热铁盒接口的账号名是密钥校验返回的 `username`（不一定等于站点名），脚本会自动带上；站点有 WAF，会拦 `RTHHostHelper` 的 UA 访问网页本身，所以第 4 步校验改用浏览器 UA。

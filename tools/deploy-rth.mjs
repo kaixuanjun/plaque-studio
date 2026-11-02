@@ -20,7 +20,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 const KEY = process.env.RTH_API_KEY || '';
-const USER = process.env.RTH_USER || 'kaixuanjun';
+let USER = process.env.RTH_USER || '';
 const DOMAIN = process.env.RTH_DOMAIN || 'kaixuanjun.rth1.xyz';
 const DIR = (process.env.RTH_DIR || 'plaque-studio').replace(/^\/+|\/+$/g, '');
 const DRY = process.argv.includes('--dry');
@@ -77,12 +77,20 @@ async function verifyKey() {
   return last;
 }
 
-async function listRemote() {
+async function listSites() {
   for (const host of HOSTS) {
-    const r = await api(host, `/host/site/content?domain=${encodeURIComponent(DOMAIN)}&username=${encodeURIComponent(USER)}`);
-    if (r.status !== 501 && r.status !== 404) return { host, ...r };
+    const r = await api(host, `/host/sites?username=${encodeURIComponent(USER)}`);
+    if (r.status === 200 && r.json) return { host, ...r };
   }
   return null;
+}
+
+/* 站点内部域名可能不带 .rth1.xyz 后缀，按返回列表匹配 */
+function pickDomain(sites) {
+  const list = (sites && sites.results) || [];
+  const want = DOMAIN.replace(/\.rth1\.xyz$/, '');
+  const hit = list.find((s) => s.domain === want) || list.find((s) => s.domain === DOMAIN) || list[0];
+  return hit ? hit.domain : null;
 }
 
 async function pushChanges(host, changes) {
@@ -110,29 +118,43 @@ async function main() {
   console.log(`\n[1/4] 密钥校验 ${v.host ? '(' + v.host + ')' : ''}: HTTP ${v.status} ${v.json ? JSON.stringify(v.json).slice(0, 160) : String(v.text || '').slice(0, 160)}`);
   if (v.json && v.json.username) console.log(`      账号: ${v.json.username} ✅`);
   else console.log('      校验接口不可用（部分 host 返回 404/501），改用站点接口判断密钥有效性。');
+  if (!USER && v.json && v.json.username) USER = v.json.username;   // 密钥返回的 username 才是接口用的账号
+  if (!USER) { console.error('      未能确定账号名，请设置 RTH_USER 后再试。'); process.exit(2); }
 
-  const site = await listRemote();
-  if (!site) { console.error('无法访问站点接口（api-overseas / api-eo 均不可用）。'); process.exit(3); }
-  if (site.status >= 400) {
-    console.error(`[2/4] 站点接口 ${site.host} 返回 ${site.status}：密钥无效 / 无权限 / 站点不存在。`);
-    process.exit(3);
+  const sites = await listSites();
+  if (!sites) { console.error('无法访问站点列表接口（api-overseas / api-eo 均不可用）。'); process.exit(3); }
+  console.log(`[2/4] 站点列表 ${sites.host}: HTTP ${sites.status} ${JSON.stringify(sites.json).slice(0, 200)}`);
+  const siteDomain = pickDomain(sites.json);
+  if (!siteDomain) { console.error('      账号下没有可用站点。'); process.exit(3); }
+  console.log(`      使用站点内部域名: ${siteDomain}`);
+
+  let listing = null;
+  try {
+    listing = await api(sites.host, `/host/site/content?domain=${encodeURIComponent(siteDomain)}&username=${encodeURIComponent(USER)}`);
+    console.log(`      现有文件清单: HTTP ${listing.status}`);
+  } catch (e) {
+    console.log(`      现有文件清单不可用（${e.message}），跳过对比，直接增量写入 ${DIR}/。`);
   }
-  console.log(`[2/4] 站点接口 ${site.host} 可用: HTTP ${site.status}`);
-  const listing = site.text || '';
-  if (listing.includes(`${DIR}/`)) console.log(`      远端已存在 ${DIR}/ 目录，将覆盖同名文件。`);
-  else console.log(`      远端无 ${DIR}/ 目录，将新建。`);
+  const hashes = (listing && listing.json && listing.json.hashes) || {};
+  const existing = Object.keys(hashes);
+  if (existing.some((k) => k.startsWith(DIR + '/'))) console.log(`      远端已存在 ${DIR}/ 目录，将覆盖同名文件。`);
+  else console.log(`      远端无 ${DIR}/ 目录，将新建。${existing.length ? '（站点现有 ' + existing.length + ' 个文件）' : ''}`);
 
   const changes = items.map((i) => ({
     operation: 'write',
     path: i.remote,
     content: TEXT_EXT.test(i.rel) ? i.buf.toString('utf8') : i.buf.toString('base64')
   }));
-  const up = await pushChanges(site.host, changes);
+  const up = await api(sites.host, '/host/site/changes', {
+    method: 'POST',
+    body: JSON.stringify({ username: USER, domain: siteDomain, changes })
+  });
   console.log(`[3/4] 上传: HTTP ${up.status} ${up.json ? JSON.stringify(up.json).slice(0, 200) : up.text.slice(0, 200)}`);
   if (up.status >= 400) process.exit(4);
 
-  // 校验：软 404 会返回根页，因此比对内容里的特征串
-  const check = await fetch(`https://${DOMAIN}/${DIR}/index.html?t=${Date.now()}`, { headers: { 'User-Agent': UA } });
+  // 校验：软 404 会返回根页，因此比对内容里的特征串。站点 WAF 会拦 RTH UA，必须用浏览器 UA
+  const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+  const check = await fetch(`https://${DOMAIN}/${DIR}/index.html?t=${Date.now()}`, { headers: { 'User-Agent': BROWSER_UA, Accept: '*/*' } });
   const body = await check.text();
   const ok = body.includes('Plaque') && body.includes('js/app.js');
   console.log(`[4/4] 线上校验: HTTP ${check.status}，内容匹配 ${ok ? '是 ✅' : '否 ❌'}（${body.length} 字节）`);
@@ -141,4 +163,5 @@ async function main() {
 }
 
 main().catch((e) => { console.error('部署失败:', e.message); process.exit(1); });
+
 
