@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plaque · 海报工坊</title>
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+<!-- ============ ICON SPRITE ============ -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24"><path d="M4 4h9a4 4 0 0 1 0 8H4z"/><path d="M4 12h5v8H4z"/><path d="M16 12h4v8h-4z"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></symbol>
+    <symbol id="i-wand" viewBox="0 0 24 24"><path d="m4 20 9-9"/><path d="M14 4v3M18.5 8.5h-3M20 3l-2 2M15 9l3-3 2 2-3 3z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 6h16M12 6v14M9 20h6"/></symbol>
+    <symbol id="i-shapes" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4.5"/><rect x="12" y="12" width="8" height="8" rx="2"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5-5 4 4 3-3 4 4"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8 11 4 4 4-4"/><path d="M5 19h14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a1 1 0 0 0-1 1v9"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7-2.6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.6"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M4 4l16 16"/><path d="M9.6 5.4A9.6 9.6 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.7"/><path d="M6.6 7.7A17 17 0 0 0 2.5 12S6 19 12 19a9.5 9.5 0 0 0 3.7-.7"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="12" rx="2.5"/><path d="m15 11 6-3v8l-6-3z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m9 8-4 4 4 4M15 8l4 4-4 4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 6.3"/><path d="M20 5v6h-6"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V6"/><path d="m8 9 4-4 4 4"/><path d="M5 19h14"/></symbol>
+    <symbol id="i-bold" viewBox="0 0 24 24"><path d="M7 5h5.5a3.5 3.5 0 0 1 0 7H7z"/><path d="M7 12h6.5a3.5 3.5 0 0 1 0 7H7z"/></symbol>
+    <symbol id="i-italic" viewBox="0 0 24 24"><path d="M10 5h8M6 19h8M14 5 10 19"/></symbol>
+    <symbol id="i-al-left" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></symbol>
+    <symbol id="i-al-center" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M6 18h12"/></symbol>
+    <symbol id="i-al-right" viewBox="0 0 24 24"><path d="M4 6h16M10 12h10M7 18h13"/></symbol>
+    <symbol id="i-align-x" viewBox="0 0 24 24"><path d="M12 3v18"/><rect x="4" y="6" width="5" height="12" rx="1"/><rect x="15" y="9" width="5" height="6" rx="1"/></symbol>
+    <symbol id="i-align-y" viewBox="0 0 24 24"><path d="M3 12h18"/><rect x="6" y="4" width="12" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/></symbol>
+    <symbol id="i-bring-front" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/></symbol>
+    <symbol id="i-duplicate" viewBox="0 0 24 24"><rect x="4" y="4" width="10" height="10" rx="2"/><path d="M10 20h8a2 2 0 0 0 2-2v-8"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"><svg class="i"><use href="#i-logo"/></svg></span>
+      <div class="brand-txt"><b>Plaque</b><span>海报工坊</span></div>
+    </div>
+
+    <div class="docbar">
+      <input id="docName" class="doc-name" value="未命名海报" spellcheck="false" aria-label="文档名称" />
+      <button class="chip" id="btnSize" title="切换画板尺寸">
+        <svg class="i"><use href="#i-grid"/></svg><span id="sizeLabel">1080 × 1440</span>
+      </button>
+    </div>
+
+    <div class="top-actions">
+      <div class="history">
+        <button class="icon-btn" id="btnUndo" title="撤销 (Ctrl+Z)" aria-label="撤销"><svg class="i"><use href="#i-undo"/></svg></button>
+        <button class="icon-btn" id="btnRedo" title="重做 (Ctrl+Shift+Z)" aria-label="重做"><svg class="i"><use href="#i-redo"/></svg></button>
+      </div>
+      <span class="vsep"></span>
+      <button class="btn ghost" id="btnAiOpen"><svg class="i accent"><use href="#i-sparkle"/></svg>AI 插画</button>
+      <button class="icon-btn" id="btnSettings" title="AI 接口设置" aria-label="AI 接口设置"><svg class="i"><use href="#i-settings"/></svg></button>
+      <div class="dd" id="ddExport">
+        <button class="btn primary" id="btnExport">导出<svg class="i sm"><use href="#i-chevron"/></svg></button>
+        <div class="dd-menu" role="menu">
+          <button data-export="png"><svg class="i"><use href="#i-image"/></svg><span>单页照片 · PNG</span><em>2× 高清</em></button>
+          <button data-export="jpg"><svg class="i"><use href="#i-image"/></svg><span>单页照片 · JPG</span><em>小体积</em></button>
+          <button data-export="web"><svg class="i"><use href="#i-code"/></svg><span>网页 · 带动画</span><em>单文件 HTML</em></button>
+          <button data-export="video"><svg class="i"><use href="#i-video"/></svg><span>视频 · WebM</span><em>含插画动效</em></button>
+          <div class="dd-sep"></div>
+          <button data-export="json"><svg class="i"><use href="#i-file"/></svg><span>工程文件 · JSON</span><em>可再编辑</em></button>
+          <button data-export="open"><svg class="i"><use href="#i-upload"/></svg><span>打开工程 · JSON</span><em>继续编辑</em></button>
+        </div>
+      </div>
+      <button class="icon-btn" id="btnHelp" title="快捷键与 API" aria-label="帮助"><svg class="i"><use href="#i-play"/></svg></button>
+    </div>
+  </header>
+
+  <!-- ============ WORKSPACE ============ -->
+  <div class="workspace">
+    <!-- rail -->
+    <nav class="rail" id="rail" aria-label="功能面板">
+      <button class="rail-btn is-active" data-panel="templates"><svg class="i"><use href="#i-grid"/></svg><span>模板</span></button>
+      <button class="rail-btn" data-panel="text"><svg class="i"><use href="#i-type"/></svg><span>文字</span></button>
+      <button class="rail-btn" data-panel="elements"><svg class="i"><use href="#i-shapes"/></svg><span>元素</span></button>
+      <button class="rail-btn" data-panel="image"><svg class="i"><use href="#i-image"/></svg><span>图片</span></button>
+      <button class="rail-btn" data-panel="effects"><svg class="i"><use href="#i-sliders"/></svg><span>效果</span></button>
+      <button class="rail-btn rail-ai" data-panel="ai"><svg class="i"><use href="#i-sparkle"/></svg><span>AI 插画</span></button>
+      <button class="rail-btn" data-panel="layers"><svg class="i"><use href="#i-layers"/></svg><span>图层</span></button>
+    </nav>
+
+    <!-- left panel -->
+    <aside class="panel" id="panel" aria-label="素材面板">
+      <div class="panel-head">
+        <h2 id="panelTitle">模板</h2>
+        <button class="icon-btn sm" id="btnPanelClose" title="收起面板" aria-label="收起面板"><svg class="i"><use href="#i-close"/></svg></button>
+      </div>
+      <div class="panel-body" id="panelBody"></div>
+    </aside>
+    <button class="panel-reopen" id="btnPanelOpen" title="展开面板"><svg class="i"><use href="#i-chevron"/></svg></button>
+
+    <!-- stage -->
+    <main class="stage" id="stage">
+      <div class="stage-bar">
+        <div class="stage-left">
+          <span class="dot"></span>
+          <span id="stageHint">双击文字可直接编辑 · 拖拽角点缩放 · 按住 Alt 拖拽复制</span>
+        </div>
+        <div class="stage-right">
+          <button class="icon-btn sm" id="btnZoomOut" title="缩小" aria-label="缩小"><svg class="i"><use href="#i-minus"/></svg></button>
+          <button class="zoom-label" id="btnZoomFit">100%</button>
+          <button class="icon-btn sm" id="btnZoomIn" title="放大" aria-label="放大"><svg class="i"><use href="#i-plus"/></svg></button>
+          <span class="vsep"></span>
+          <button class="btn tiny" id="btnToggleSafe">安全区</button>
+          <button class="btn tiny" id="btnPlayAnim"><svg class="i sm"><use href="#i-play"/></svg>预览动效</button>
+        </div>
+      </div>
+      <div class="viewport" id="viewport">
+        <div class="stage-inner" id="stageInner">
+          <div class="poster-shadow" id="posterShadow"></div>
+          <div class="poster" id="poster" aria-label="海报画板"></div>
+          <div class="poster-meta" id="posterMeta">1080 × 1440 px</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- inspector -->
+    <aside class="inspector" id="inspector" aria-label="属性面板"></aside>
+  </div>
+</div>
+
+<!-- ============ MODAL: AI GENERATE ============ -->
+<div class="modal" id="modalAi" aria-hidden="true">
+  <div class="modal-card wide" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+    <header class="modal-head">
+      <h3 id="aiTitle"><svg class="i accent"><use href="#i-sparkle"/></svg>AI 编程插画</h3>
+      <button class="icon-btn" data-close="modalAi" aria-label="关闭"><svg class="i"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="modal-body ai-body">
+      <div class="ai-form">
+        <label class="fld">
+          <span>插画描述（中文即可）</span>
+          <textarea id="aiBrief" rows="4" placeholder="例：一只像素风的橘猫坐在老式电视机前，屏幕发出蓝绿色的光，背景是深夜的出租屋，机位正对，构图居中留白"></textarea>
+        </label>
+        <div class="fld-row">
+          <label class="fld"><span>风格</span><select id="aiStyle"></select></label>
+          <label class="fld"><span>密度</span><select id="aiDensity">
+            <option value="low">极简</option><option value="mid" selected>适中</option><option value="high">繁复</option>
+          </select></label>
+        </div>
+        <div class="fld-row">
+          <label class="fld"><span>时长（秒）</span><input id="aiDuration" type="number" min="2" max="20" step="1" value="6" /></label>
+          <label class="fld"><span>帧率</span><select id="aiFps"><option>24</option><option selected>30</option><option>60</option></select></label>
+        </div>
+        <div class="fld-row">
+          <label class="fld"><span>动效强度</span><input id="aiMotion" type="range" min="0" max="10" value="4" /></label>
+          <label class="fld"><span>配色</span><select id="aiPalette"><option value="poster" selected>跟随海报配色</option><option value="custom">自定义</option></select></label>
+        </div>
+        <label class="fld" id="aiPaletteWrap" hidden><span>自定义色板（逗号分隔 hex）</span><input id="aiPaletteHex" value="#0B0F14,#35E08A,#F4F7FB,#1B2336" /></label>
+        <div class="ai-target">
+          <span>插入方式</span>
+          <div class="seg">
+            <button class="seg-btn is-active" data-target="layer">新图层</button>
+            <button class="seg-btn" data-target="full">铺满画板</button>
+          </div>
+        </div>
+        <div class="ai-actions">
+          <button class="btn primary block" id="btnAiRun"><svg class="i"><use href="#i-wand"/></svg>生成插画</button>
+          <p class="hint" id="aiCfgHint">未配置接口，将使用本地算法插画引擎。</p>
+        </div>
+      </div>
+      <div class="ai-preview">
+        <div class="ai-preview-head">
+          <span>预览</span>
+          <div class="ai-preview-tools">
+            <button class="btn tiny" id="btnAiCode"><svg class="i sm"><use href="#i-code"/></svg>查看代码</button>
+            <button class="btn tiny" id="btnAiLocal"><svg class="i sm"><use href="#i-sparkle"/></svg>本地生成</button>
+          </div>
+        </div>
+        <div class="ai-frame-box" id="aiFrameBox"><div class="empty-note">生成的插画会在这里实时播放</div></div>
+        <div class="ai-log" id="aiLog">就绪。</div>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <span class="hint">插画由大模型编写 Canvas 代码实现，非文生图。导出视频可把动效录成 WebM。</span>
+      <div class="foot-actions">
+        <button class="btn ghost" data-close="modalAi">取消</button>
+        <button class="btn primary" id="btnAiInsert" disabled>插入画板</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ MODAL: SETTINGS ============ -->
+<div class="modal" id="modalSettings" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <header class="modal-head">
+      <h3 id="setTitle"><svg class="i"><use href="#i-settings"/></svg>大模型接口</h3>
+      <button class="icon-btn" data-close="modalSettings" aria-label="关闭"><svg class="i"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <p class="hint">任意 OpenAI 兼容端点（DeepSeek / 通义 / Kimi / Ollama / vLLM 均可）。Key 只存在本机 localStorage。</p>
+      <label class="fld"><span>Base URL</span><input id="cfgBase" placeholder="https://api.deepseek.com/v1" /></label>
+      <label class="fld"><span>API Key</span><input id="cfgKey" type="password" placeholder="sk-..." /></label>
+      <div class="fld-row">
+        <label class="fld"><span>模型</span><input id="cfgModel" placeholder="deepseek-chat" /></label>
+        <label class="fld"><span>温度</span><input id="cfgTemp" type="number" min="0" max="1.5" step="0.1" value="0.7" /></label>
+      </div>
+      <label class="check"><input type="checkbox" id="cfgStream" checked /> 流式接收（边生成边看代码）</label>
+      <div class="callout">
+        <b>接口约定</b>
+        <code>POST {BaseURL}/chat/completions</code>
+        <span>也挂载了 <code>window.Plaque.ai.generate()</code> 供脚本调用。</span>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <span class="hint" id="cfgState">未配置</span>
+      <div class="foot-actions">
+        <button class="btn ghost" id="btnCfgTest">测试连通</button>
+        <button class="btn primary" id="btnCfgSave">保存</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ MODAL: CODE ============ -->
+<div class="modal" id="modalCode" aria-hidden="true">
+  <div class="modal-card wide" role="dialog" aria-modal="true" aria-labelledby="codeTitle">
+    <header class="modal-head">
+      <h3 id="codeTitle"><svg class="i"><use href="#i-code"/></svg>插画源码</h3>
+      <button class="icon-btn" data-close="modalCode" aria-label="关闭"><svg class="i"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="modal-body">
+      <p class="hint">这是模型编译出的单文件 Canvas 程序。可直接改代码，再点「应用」重绘。</p>
+      <textarea id="codeArea" class="code-area" spellcheck="false" wrap="off"></textarea>
+    </div>
+    <footer class="modal-foot">
+      <span class="hint"><code>window.renderFrame(t)</code> 是唯一渲染入口，导出按时间逐帧调用。</span>
+      <div class="foot-actions">
+        <button class="btn ghost" data-close="modalCode">关闭</button>
+        <button class="btn primary" id="btnCodeApply">应用</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ MODAL: SIZES ============ -->
+<div class="modal" id="modalSizes" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="sizeTitle">
+    <header class="modal-head">
+      <h3 id="sizeTitle"><svg class="i"><use href="#i-grid"/></svg>画板尺寸</h3>
+      <button class="icon-btn" data-close="modalSizes" aria-label="关闭"><svg class="i"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="modal-body" id="sizeList"></div>
+  </div>
+</div>
+
+<!-- ============ MODAL: HELP ============ -->
+<div class="modal" id="modalHelp" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <header class="modal-head">
+      <h3 id="helpTitle"><svg class="i"><use href="#i-play"/></svg>快捷键与 API</h3>
+      <button class="icon-btn" data-close="modalHelp" aria-label="关闭"><svg class="i"><use href="#i-close"/></svg></button>
+    </header>
+    <div class="modal-body help-body">
+      <div class="keys">
+        <div><kbd>V</kbd> 选择</div><div><kbd>T</kbd> 文字</div><div><kbd>R</kbd> 矩形</div>
+        <div><kbd>O</kbd> 圆形</div><div><kbd>双击</kbd> 编辑文字</div><div><kbd>Alt+拖</kbd> 复制</div>
+        <div><kbd>Shift</kbd> 等比 / 加选</div><div><kbd>方向键</kbd> 微移 1px</div><div><kbd>Shift+方向</kbd> 10px</div>
+        <div><kbd>Ctrl+D</kbd> 复制</div><div><kbd>Ctrl+Z</kbd> 撤销</div><div><kbd>Ctrl+Shift+Z</kbd> 重做</div>
+        <div><kbd>Ctrl+G</kbd> 组合</div><div><kbd>Del</kbd> 删除</div><div><kbd>Ctrl+滚轮</kbd> 缩放</div>
+      </div>
+      <h4>对外 API</h4>
+      <pre class="api-pre">Plaque.ready
+Plaque.doc.renderToCanvas({ scale: 2 })
+Plaque.export.png() / .web() / .video({ duration: 6 })
+Plaque.ai.generate({ brief, style, palette })
+Plaque.addAILayer(html, { w, h, duration })
+Plaque.insert(layoutId)   // 应用内置布局</pre>
+      <h4>插画输出契约</h4>
+      <pre class="api-pre">window.ART = { width, height, duration, fps }
+window.renderFrame(t)   // 秒，纯函数、可重复
+&lt;canvas id="art"&gt;        // 唯一画布</pre>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="busy" id="busy" hidden><div class="spinner"></div><span id="busyText">生成中…</span><button class="btn tiny ghost" id="busyStop">停止</button></div>
+
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/render.js"></script>
+<script src="js/localart.js"></script>
+<script src="js/prompts.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/exporter.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
+
+

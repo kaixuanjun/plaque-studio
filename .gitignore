@@ -1,0 +1,19 @@
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器 / 工具
+.vscode/
+.idea/
+*.log
+
+# 本地测试产物
+_t*.mjs
+_cdp.mjs
+_mock_server.mjs
+_*.png
+_export_test.html
+
+# 依赖（本项目零依赖，占位以防误提交）
+node_modules/
