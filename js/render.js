@@ -263,7 +263,10 @@
         'function fit(){var c=document.getElementById("art");if(!c)return;c.style.width="100%";c.style.height="100%";}' +
         'function tick(now){if(!t0)t0=now;var d=(window.ART&&window.ART.duration)||6;if(!(d>0))d=6;var t=((now-t0)/1000)%d;' +
         'try{fit();if(typeof window.renderFrame==="function")window.renderFrame(t);}catch(e){}requestAnimationFrame(tick);}' +
-        'requestAnimationFrame(tick);})();<\/script>';
+        'function first(){try{fit();if(typeof window.renderFrame==="function")window.renderFrame(1.2);}catch(e){}}' +
+        'first();try{first();}catch(e){}' +
+        'if(document.readyState==="complete")requestAnimationFrame(tick);else window.addEventListener("load",function(){first();requestAnimationFrame(tick);});' +
+        'setTimeout(first,90);setTimeout(first,400);})();<\/script>';
     let doc = String(html || '');
     if (!/<\/body>/i.test(doc)) doc += driver;
     else doc = doc.replace(/<\/body>/i, driver + '</body>');

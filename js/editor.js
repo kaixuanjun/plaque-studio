@@ -94,8 +94,13 @@
     const doc = Store.doc;
     const vp = viewport();
     if (!doc || !vp) return;
-    const pad = 72;
-    const z = Math.min((vp.clientWidth - pad) / doc.canvas.w, (vp.clientHeight - pad) / doc.canvas.h);
+    /* 顶部浮动工具条与底部 prompt / 素材库占位，避免画板被遮住 */
+    const dock = document.getElementById('dock');
+    const dockH = dock ? dock.getBoundingClientRect().height : 0;
+    const topPad = 92, sidePad = 68, bottomPad = dockH + 104;
+    const availW = Math.max(80, vp.clientWidth - sidePad * 2);
+    const availH = Math.max(80, vp.clientHeight - topPad - bottomPad);
+    const z = Math.min(availW / doc.canvas.w, availH / doc.canvas.h);
     ED.zoom = U.clamp(z, 0.04, 1.6);
     applyZoom();
     ED.syncSel();

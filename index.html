@@ -60,14 +60,16 @@
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark"><svg class="i"><use href="#i-logo"/></svg></span>
-      <div class="brand-txt"><b>Plaque</b><span>海报工坊</span></div>
+      <div class="brand-txt"><b>Plaque</b><span>Studio</span></div>
     </div>
 
     <div class="docbar">
       <input id="docName" class="doc-name" value="未命名海报" spellcheck="false" aria-label="文档名称" />
+      <span class="doc-dot" aria-hidden="true">·</span>
       <button class="chip" id="btnSize" title="切换画板尺寸">
         <svg class="i"><use href="#i-grid"/></svg><span id="sizeLabel">1080 × 1440</span>
       </button>
+      <span class="saved-note" id="savedNote" hidden>已自动保存</span>
     </div>
 
     <div class="top-actions">
@@ -76,7 +78,7 @@
         <button class="icon-btn" id="btnRedo" title="重做 (Ctrl+Shift+Z)" aria-label="重做"><svg class="i"><use href="#i-redo"/></svg></button>
       </div>
       <span class="vsep"></span>
-      <button class="btn ghost" id="btnAiOpen"><svg class="i accent"><use href="#i-sparkle"/></svg>AI 插画</button>
+      <button class="btn ghost" id="btnAiOpen"><svg class="i accent"><use href="#i-sparkle"/></svg>生成插画</button>
       <button class="icon-btn" id="btnSettings" title="AI 接口设置" aria-label="AI 接口设置"><svg class="i"><use href="#i-settings"/></svg></button>
       <div class="dd" id="ddExport">
         <button class="btn primary" id="btnExport">导出<svg class="i sm"><use href="#i-chevron"/></svg></button>
@@ -119,20 +121,18 @@
 
     <!-- stage -->
     <main class="stage" id="stage">
-      <div class="stage-bar">
-        <div class="stage-left">
-          <span class="dot"></span>
-          <span id="stageHint">双击文字可直接编辑 · 拖拽角点缩放 · 按住 Alt 拖拽复制</span>
-        </div>
-        <div class="stage-right">
+      <div class="stage-tools">
+        <div class="tool-pill">
           <button class="icon-btn sm" id="btnZoomOut" title="缩小" aria-label="缩小"><svg class="i"><use href="#i-minus"/></svg></button>
-          <button class="zoom-label" id="btnZoomFit">100%</button>
+          <button class="zoom-label" id="btnZoomFit" title="点击适应窗口">100%</button>
           <button class="icon-btn sm" id="btnZoomIn" title="放大" aria-label="放大"><svg class="i"><use href="#i-plus"/></svg></button>
           <span class="vsep"></span>
-          <button class="btn tiny" id="btnToggleSafe">安全区</button>
-          <button class="btn tiny" id="btnPlayAnim"><svg class="i sm"><use href="#i-play"/></svg>预览动效</button>
+          <button class="tool-txt" id="btnToggleSafe" title="显示/隐藏安全区">安全区</button>
+          <button class="tool-txt" id="btnPlayAnim" title="预览动效"><svg class="i sm"><use href="#i-play"/></svg>动效</button>
         </div>
+        <div class="tool-hint" id="stageHint">双击文字编辑 · 拖角点缩放 · Alt 拖拽复制</div>
       </div>
+
       <div class="viewport" id="viewport">
         <div class="stage-inner" id="stageInner">
           <div class="poster-shadow" id="posterShadow"></div>
@@ -140,10 +140,41 @@
           <div class="poster-meta" id="posterMeta">1080 × 1440 px</div>
         </div>
       </div>
+
+      <!-- 生成提示条：像 ArtCraft 一样随时可写 prompt -->
+      <div class="promptbar" id="promptBar">
+        <span class="prompt-badge"><svg class="i sm"><use href="#i-sparkle"/></svg></span>
+        <input id="promptInput" placeholder="描述插画：深空的粒子星环，蓝紫渐变，缓慢旋转…" spellcheck="false" />
+        <button class="prompt-chip" id="promptStyle" title="选择风格">扁平矢量</button>
+        <button class="btn primary sm" id="promptRun">生成</button>
+        <button class="icon-btn sm" id="promptMore" title="打开完整生成器"><svg class="i"><use href="#i-sliders"/></svg></button>
+      </div>
+
+      <!-- 素材库（生成结果收集） -->
+      <div class="dock" id="dock">
+        <div class="dock-head">
+          <b>素材库</b><span class="dock-count" id="dockCount">0</span>
+          <button class="icon-btn sm" id="btnDockCollapse" title="收起素材库"><svg class="i"><use href="#i-chevron"/></svg></button>
+        </div>
+        <div class="dock-list" id="dockList"></div>
+      </div>
     </main>
 
     <!-- inspector -->
-    <aside class="inspector" id="inspector" aria-label="属性面板"></aside>
+    <aside class="inspector-col">
+      <section class="gen-card" id="genCard">
+        <header class="gen-head">
+          <span class="gen-title"><svg class="i sm accent"><use href="#i-sparkle"/></svg>生成</span>
+          <span class="gen-model" id="genModel">本地算法</span>
+        </header>
+        <textarea id="genBrief" rows="2" placeholder="一句话描述，回车生成"></textarea>
+        <div class="gen-foot">
+          <select id="genStyle" aria-label="风格"></select>
+          <button class="btn primary sm" id="genRun">生成</button>
+        </div>
+      </section>
+      <aside class="inspector" id="inspector" aria-label="属性面板"></aside>
+    </aside>
   </div>
 </div>
 

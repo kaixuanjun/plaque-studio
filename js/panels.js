@@ -1093,6 +1093,7 @@
     });
     AIMOD.html = html;
     setPreview(html, form.w, form.h);
+    pushArt(form);
     const ins = document.getElementById('btnAiInsert');
     if (ins) ins.disabled = false;
     aiLog('本地算法引擎已生成（无需 API）。点「插入画板」使用，或先「查看代码」。');
@@ -1117,6 +1118,7 @@
       });
       AIMOD.html = r.html;
       setPreview(r.html, form.w, form.h);
+      pushArt(form);
       const ins = document.getElementById('btnAiInsert');
       if (ins) ins.disabled = false;
       aiLog(r.issues.length ? '已生成，但自检提示：' + r.issues.join('；') : '生成完成，自检通过。');
@@ -1131,35 +1133,40 @@
     }
   }
 
-  /* 找一个与现有图层重叠最少的落位 */
+  /* 找一个与现有图层重叠最少的落位（多档尺寸 + 互不重叠的候选格） */
   function bestArtRect(doc) {
     const W = doc.canvas.w, H = doc.canvas.h;
-    const w = Math.round(Math.min(W * 0.56, H * 0.56));
-    const h = w;
     const pad = Math.round(Math.min(W, H) * 0.05);
-    const cols = 4, rows = 5;
-    const gx = (W - pad * 2 - w) / Math.max(1, cols - 1);
-    const gy = (H - pad * 2 - h) / Math.max(1, rows - 1);
+    const sizes = [0.46, 0.40, 0.34, 0.28].map((k) => Math.round(Math.min(W, H) * k));
     let best = null;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const x = pad + c * gx;
-        const y = pad + r * gy;
-        let score = 0;
-        (doc.layers || []).forEach((l) => {
-          if (l.hidden) return;
-          const ox = Math.max(0, Math.min(x + w, l.x + l.w) - Math.max(x, l.x));
-          const oy = Math.max(0, Math.min(y + h, l.y + l.h) - Math.max(y, l.y));
-          let weight = 1;
-          if (l.type === 'shape') weight = (l.w >= W * 0.9 && l.h >= H * 0.9) ? 0.02 : 0.4;
-          else if (l.type === 'text') weight = 2.2;
-          score += ox * oy * weight;
-        });
-        score += Math.abs(y - H * 0.5) * 2;
-        if (!best || score < best.score) best = { x: Math.round(x), y: Math.round(y), w, h, score };
+
+    sizes.forEach((size) => {
+      const cols = Math.max(1, Math.floor((W - pad * 2) / size));
+      const rows = Math.max(1, Math.floor((H - pad * 2) / size));
+      const gx = cols > 1 ? (W - pad * 2 - size) / (cols - 1) : 0;
+      const gy = rows > 1 ? (H - pad * 2 - size) / (rows - 1) : 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = pad + c * gx;
+          const y = pad + r * gy;
+          let score = 0;
+          (doc.layers || []).forEach((l) => {
+            if (l.hidden) return;
+            const ox = Math.max(0, Math.min(x + size, l.x + l.w) - Math.max(x, l.x));
+            const oy = Math.max(0, Math.min(y + size, l.y + l.h) - Math.max(y, l.y));
+            let weight = 1.4;
+            if (l.type === 'shape') weight = (l.w >= W * 0.9 && l.h >= H * 0.9) ? 0.02 : 0.5;
+            else if (l.type === 'text') weight = 5;
+            score += ox * oy * weight;
+          });
+          score += Math.abs(y - H * 0.46) * 1.6;
+          /* 归一化：小尺寸天然重叠少，用面积折算，避免总是选最小 */
+          const norm = score / (size * size) + (1 - size / Math.min(W, H)) * 0.05;
+          if (!best || norm < best.norm) best = { x: Math.round(x), y: Math.round(y), w: size, h: size, norm };
+        }
       }
-    }
-    return best || { x: pad, y: pad, w, h };
+    });
+    return best || { x: pad, y: pad, w: sizes[1], h: sizes[1] };
   }
 
   function insertArt() {    if (!AIMOD.html) return;
@@ -1184,6 +1191,85 @@
     hideModal('modalAi');
     U.toast('已插入插画图层');
   }
+
+  /* =========================================================
+     素材库（生成结果收集，ArtCraft 式底部素材栏）
+     ========================================================= */
+  const ARTS_KEY = 'plaque.arts';
+  let ARTS = (function () {
+    try {
+      const a = JSON.parse(localStorage.getItem(ARTS_KEY) || '[]');
+      return Array.isArray(a) ? a : [];
+    } catch (_) { return []; }
+  })();
+
+  function saveArts() {
+    try { localStorage.setItem(ARTS_KEY, JSON.stringify(ARTS.slice(0, 12))); } catch (_) { /* 配额不足则只在内存保留 */ }
+  }
+
+  function pushArt(form) {
+    if (!AIMOD.html) return;
+    ARTS.unshift({
+      id: 'a' + Date.now().toString(36),
+      brief: (form.brief || '未命名插画').slice(0, 60),
+      style: form.style || '',
+      html: AIMOD.html,
+      w: form.w, h: form.h,
+      duration: form.duration, fps: form.fps, seed: form.seed,
+      ts: Date.now()
+    });
+    ARTS = ARTS.slice(0, 12);
+    saveArts();
+    PANELS.renderDock();
+  }
+
+  PANELS.renderDock = function () {
+    const list = document.getElementById('dockList');
+    const cnt = document.getElementById('dockCount');
+    if (cnt) cnt.textContent = String(ARTS.length);
+    if (!list) return;
+    list.innerHTML = '';
+    if (!ARTS.length) {
+      const e = mk('div', 'dock-empty', '还没有生成物。写一句描述，回车即可生成插画，生成结果会收进这里。');
+      list.appendChild(e);
+      return;
+    }
+    ARTS.forEach((a) => {
+      const it = mk('div', 'dock-item');
+      it.dataset.artId = a.id;
+      it.title = a.brief + '\n点击插入画板';
+      const ifr = mk('iframe');
+      ifr.setAttribute('sandbox', 'allow-scripts');
+      ifr.setAttribute('scrolling', 'no');
+      ifr.srcdoc = R.aiDoc(a.html, a.w, a.h, true);
+      it.appendChild(ifr);
+      it.appendChild(mk('em', null, a.brief));
+      it.addEventListener('click', () => insertFromDock(a.id));
+      list.appendChild(it);
+    });
+  };
+
+  function insertFromDock(id) {
+    const a = ARTS.find((x) => x.id === id);
+    if (!a) return;
+    const doc = Store.doc;
+    const spot = bestArtRect(doc);
+    const L = DATA.mkAI({
+      name: 'AI 插画', x: spot.x, y: spot.y, w: spot.w, h: spot.h,
+      artHtml: a.html, aiBrief: a.brief, duration: a.duration || 6, fps: a.fps || 30, artSeed: a.seed,
+      radius: Math.round(Math.min(doc.canvas.w, doc.canvas.h) * 0.012)
+    });
+    Store.add(L, { label: '插入素材库插画' });
+    Store.select([L.id]);
+    U.toast('已从素材库插入');
+  }
+
+  PANELS.pushArt = pushArt;
+  PANELS.insertFromDock = insertFromDock;
+  PANELS.runLocal = runLocal;
+  PANELS.runAI = runAI;
+  PANELS.aiForm = aiForm;
+  PANELS.insertArt = insertArt;
 
   /* =========================================================
      绑定

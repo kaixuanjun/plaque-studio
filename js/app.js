@@ -3,6 +3,7 @@
   'use strict';
 
   const $ = U.$;
+  const $$ = U.$$;
   let booted = false;
 
   /* ---------- 初始文档 ---------- */
@@ -118,6 +119,8 @@
     $('#btnPanelClose') && $('#btnPanelClose').addEventListener('click', () => app.classList.add('panel-closed'));
     $('#btnPanelOpen') && $('#btnPanelOpen').addEventListener('click', () => app.classList.remove('panel-closed'));
 
+    wireStudio();
+
     /* 导出下拉 */
     const dd = $('#ddExport');
     if (dd) {
@@ -200,6 +203,101 @@
   function wireResize() {
     const fit = U.debounce(() => { ED.fit(); syncStage(); }, 160);
     window.addEventListener('resize', fit);
+  }
+
+  /* ---------- ArtCraft 式界面：rail 提示 / 常驻 prompt / 生成卡 / 素材库 ---------- */
+  function wireStudio() {
+    const styles = (window.DATA && DATA.AI_STYLES) || [];
+
+    $$('.rail-btn').forEach((b) => {
+      const s = b.querySelector('span');
+      if (s && !b.dataset.tip) b.dataset.tip = s.textContent.trim();
+    });
+
+    const gs = $('#genStyle');
+    if (gs && !gs.options.length) {
+      styles.forEach((s) => {
+        const o = document.createElement('option');
+        o.value = s.id; o.textContent = s.name;
+        gs.appendChild(o);
+      });
+    }
+    const ps = $('#promptStyle');
+    let styleIdx = 0;
+    const paintStyle = () => {
+      const s = styles[styleIdx];
+      if (ps && s) ps.textContent = '风格：' + s.name;
+      if (gs && s) gs.value = s.id;
+    };
+    paintStyle();
+    if (ps) ps.addEventListener('click', () => {
+      if (!styles.length) return;
+      styleIdx = (styleIdx + 1) % styles.length;
+      paintStyle();
+    });
+
+    const launch = (brief, styleId) => {
+      const text = (brief || '').trim();
+      if (!text) { U.toast('先写一句插画描述'); const i = $('#promptInput'); if (i) i.focus(); return; }
+      window.openAi(text);
+      const sel = $('#aiStyle');
+      if (sel && styleId) sel.value = styleId;
+      const fg = $('#genBrief');
+      if (fg) fg.value = text;
+      setTimeout(() => {
+        if (window.AI && AI.ready()) PANELS.runAI();
+        else PANELS.runLocal(PANELS.aiForm());
+      }, 40);
+    };
+
+    const pi = $('#promptInput');
+    const run = $('#promptRun');
+    if (run) run.addEventListener('click', () => launch(pi && pi.value, gs && gs.value));
+    if (pi) pi.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); launch(pi.value, gs && gs.value); }
+    });
+    const more = $('#promptMore');
+    if (more) more.addEventListener('click', () => window.openAi(pi ? pi.value : ''));
+
+    const gb = $('#genBrief');
+    const grun = $('#genRun');
+    const genRun = () => launch(gb && gb.value, gs && gs.value);
+    if (grun) grun.addEventListener('click', genRun);
+    if (gb) gb.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); genRun(); }
+    });
+
+    const gm = $('#genModel');
+    const syncModel = () => {
+      if (!gm) return;
+      gm.textContent = (window.AI && AI.ready()) ? (AI.cfg().model || '已连接') : '本地算法';
+      gm.title = (window.AI && AI.ready()) ? AI.cfg().base : '未配置接口，使用本地算法引擎';
+    };
+    syncModel();
+    setInterval(syncModel, 4000);
+
+    const dock = $('#dock');
+    const dc = $('#btnDockCollapse');
+    if (dc && dock) dc.addEventListener('click', () => {
+      const collapsed = dock.classList.toggle('is-collapsed');
+      const st = $('#stage');
+      if (st) st.style.setProperty('--dock-h', collapsed ? '28px' : '104px');
+    });
+    if (window.PANELS && PANELS.renderDock) PANELS.renderDock();
+
+    const note = $('#savedNote');
+    let noteTimer = 0;
+    const flash = () => {
+      if (!note) return;
+      note.hidden = false;
+      note.classList.add('show');
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => {
+        note.classList.remove('show');
+        setTimeout(() => { note.hidden = true; }, 320);
+      }, 1400);
+    };
+    Store.on('history', flash);
   }
 
   /* ---------- 公共 API ---------- */

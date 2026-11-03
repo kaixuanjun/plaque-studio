@@ -763,3 +763,174 @@ kbd{
 .cfg-fix{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .cfg-fix[hidden]{display:none}
 .cfg-fix .btn{font-size:12px;padding:6px 12px}
+
+/* ============================================================
+   ArtCraft 风格版式改造（IDE for artists）
+   顶部细栏 · 图标化 rail · 浮动工具 · 常驻 prompt · 底部素材库 · 右栏生成卡
+   ============================================================ */
+:root{--rail-w:60px;--panel-w:300px;--insp-w:340px;--top-h:52px;--dock-h:104px}
+
+.app{grid-template-rows:var(--top-h) minmax(0,1fr)}
+.topbar{height:var(--top-h);background:linear-gradient(180deg,#0B0E14,#080A0F);border-bottom-color:#1A2230}
+.brand{min-width:132px;gap:8px}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#1D3B2D,#0C1A14);border-color:#28553F}
+.brand-txt b{font-size:13px}
+.brand-txt span{font-size:9px;letter-spacing:.2em}
+.doc-dot{color:var(--muted-2);font-size:12px}
+.saved-note{font-size:10.5px;color:var(--muted-2);opacity:0;transition:opacity .3s var(--ease)}
+.saved-note.show{opacity:1}
+.top-actions .btn.ghost{background:var(--raise);border-color:var(--line-2)}
+
+.workspace{grid-template-columns:var(--rail-w) var(--panel-w) minmax(0,1fr) var(--insp-w)}
+.app.panel-closed .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) var(--insp-w)}
+.app.inspector-closed .workspace{grid-template-columns:var(--rail-w) var(--panel-w) minmax(0,1fr) 0}
+.app.panel-closed .panel-reopen{left:var(--rail-w)}
+
+/* rail：图标方块 + 悬浮 tooltip */
+.rail{gap:6px;padding:10px 0;background:#0B0E14}
+.rail-btn{
+  width:44px;height:44px;padding:0;border-radius:12px;justify-content:center;gap:0;position:relative;
+  color:var(--muted-2);
+}
+.rail-btn span{display:none}
+.rail-btn .i{width:20px;height:20px}
+.rail-btn.is-active{color:var(--accent);background:rgba(53,224,138,.12);box-shadow:inset 0 0 0 1px rgba(53,224,138,.24)}
+.rail-btn.is-active::before{display:none}
+.rail-btn::after{
+  content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%) translateX(-4px);
+  padding:4px 8px;border-radius:6px;background:#161C27;border:1px solid var(--line-2);color:var(--fg-dim);
+  font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .14s var(--ease),transform .14s var(--ease);z-index:60;
+}
+.rail-btn:hover::after{opacity:1;transform:translateY(-50%) translateX(0)}
+.rail-ai.is-active{color:var(--violet);background:rgba(155,140,255,.14);box-shadow:inset 0 0 0 1px rgba(155,140,255,.28)}
+
+/* stage：无横条，工具浮在画布上 */
+.stage{grid-template-rows:minmax(0,1fr);background:radial-gradient(1200px 620px at 50% -10%,#101724 0%,#080B10 60%,#06080C 100%)}
+.stage-tools{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;align-items:center;gap:10px;padding:10px 12px;pointer-events:none}
+.tool-pill{
+  pointer-events:auto;display:flex;align-items:center;gap:2px;height:34px;padding:0 7px;border-radius:999px;
+  background:rgba(16,21,29,.88);border:1px solid var(--line-2);backdrop-filter:blur(12px);
+  box-shadow:0 10px 26px -14px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.tool-pill .icon-btn{border-radius:50%}
+.tool-pill .vsep{height:18px}
+.tool-txt{
+  display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:999px;
+  font-size:11.5px;color:var(--muted);transition:background .15s var(--ease),color .15s var(--ease);
+}
+.tool-txt:hover{background:var(--raise);color:var(--fg)}
+.tool-txt.on{background:rgba(53,224,138,.14);color:var(--accent)}
+.tool-hint{
+  margin-left:auto;pointer-events:none;font-size:10.5px;color:var(--muted-2);
+  background:rgba(12,16,22,.7);border:1px solid rgba(31,39,55,.8);padding:4px 10px;border-radius:999px;
+  backdrop-filter:blur(8px);white-space:nowrap;max-width:46%;overflow:hidden;text-overflow:ellipsis;
+}
+.viewport{padding:62px 52px calc(var(--dock-h) + 92px);background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.045) 1px,transparent 0);background-size:24px 24px}
+
+/* 常驻 prompt 条 */
+.promptbar{
+  position:absolute;left:50%;bottom:calc(var(--dock-h) + 14px);transform:translateX(-50%);
+  width:min(640px,calc(100% - 88px));z-index:7;
+  display:flex;align-items:center;gap:8px;padding:7px 8px 7px 10px;border-radius:16px;
+  background:rgba(14,18,25,.94);border:1px solid var(--line-2);backdrop-filter:blur(16px);
+  box-shadow:0 28px 70px -28px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:border-color .18s var(--ease),box-shadow .18s var(--ease);
+}
+.promptbar:focus-within{border-color:#2E7D57;box-shadow:0 28px 70px -28px rgba(0,0,0,.95),0 0 0 3px rgba(53,224,138,.12)}
+.prompt-badge{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--violet);background:rgba(155,140,255,.14);flex:0 0 auto}
+.promptbar input{flex:1;min-width:0;background:none;border:0;padding:6px 2px;font-size:12.5px;color:var(--fg)}
+.promptbar input::placeholder{color:var(--muted-2)}
+.promptbar input:focus{box-shadow:none;border:0}
+.prompt-chip{
+  height:26px;padding:0 10px;border-radius:999px;background:var(--raise);border:1px solid var(--line-2);
+  font-size:11.5px;color:var(--muted);white-space:nowrap;transition:color .15s var(--ease),border-color .15s var(--ease);
+}
+.prompt-chip:hover{color:var(--fg);border-color:#3A4A62}
+
+/* 素材库 dock */
+.dock{
+  position:absolute;left:0;right:0;bottom:0;height:var(--dock-h);z-index:8;
+  display:grid;grid-template-rows:28px minmax(0,1fr);
+  background:rgba(10,13,18,.94);border-top:1px solid var(--line);backdrop-filter:blur(14px);
+  transition:height .22s var(--ease);
+}
+.dock.is-collapsed{height:28px}
+.dock.is-collapsed .dock-list{display:none}
+.dock-head{display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
+.dock-head b{font-weight:650;letter-spacing:.14em}
+.dock-count{font-variant-numeric:tabular-nums;color:var(--muted-2);border:1px solid var(--line-2);border-radius:999px;padding:0 6px;line-height:15px;font-size:10px}
+.dock-head .icon-btn{margin-left:auto}
+.dock.is-collapsed .dock-head .icon-btn .i{transform:rotate(180deg)}
+.dock-head .icon-btn .i{transform:rotate(-90deg);transition:transform .2s var(--ease)}
+.dock-list{display:flex;align-items:flex-start;gap:8px;padding:2px 10px 10px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.dock-item{
+  position:relative;flex:0 0 auto;width:82px;height:62px;border-radius:9px;overflow:hidden;
+  border:1px solid var(--line-2);background:#0B0F15;cursor:pointer;transition:border-color .15s var(--ease),transform .12s var(--ease);
+}
+.dock-item:hover{border-color:#3A7F5F;transform:translateY(-2px)}
+.dock-item iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}
+.dock-item em{position:absolute;left:0;right:0;bottom:0;padding:2px 4px;font-size:9px;font-style:normal;color:#DCE6F2;background:linear-gradient(transparent,rgba(0,0,0,.88));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-empty{font-size:11px;color:var(--muted-2);padding:16px 2px}
+
+/* 右栏：生成卡 + 属性 */
+.inspector-col{display:grid;grid-template-rows:auto minmax(0,1fr);border-left:1px solid var(--line);background:var(--panel);min-width:0;min-height:0}
+.inspector{border-left:0;min-height:0;overflow-y:auto}
+.gen-card{display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#111724,#0D1118)}
+.gen-head{display:flex;align-items:center;gap:6px}
+.gen-title{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gen-model{
+  margin-left:auto;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:10px;color:var(--muted-2);border:1px solid var(--line-2);border-radius:999px;padding:1px 8px;
+}
+.gen-card textarea{width:100%;min-height:52px;resize:none;font-size:12px;line-height:1.5;background:var(--raise);border-radius:var(--r-md)}
+.gen-foot{display:flex;gap:6px}
+.gen-foot select{flex:1;min-width:0}
+.gen-card .btn.sm{height:28px;padding:0 12px;font-size:12px}
+
+@media (max-width:1180px){
+  .workspace{grid-template-columns:var(--rail-w) 260px minmax(0,1fr) 300px}
+  .tool-hint{display:none}
+}
+@media (max-width:980px){
+  .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 0}
+  .app.panel-closed .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 0}
+  .panel,.inspector-col{display:none}
+  .promptbar{width:calc(100% - 32px);bottom:calc(var(--dock-h) + 10px)}
+}
+
+/* —— ArtCraft 版式微调 —— */
+.rail-btn{color:#7C8CA3}
+.rail-btn:hover{color:var(--fg)}
+.viewport{padding-bottom:calc(var(--dock-h) + 132px)}
+.dock{background:rgba(13,17,23,.97);border-top:1px solid #202A38}
+.dock-item{width:86px;height:64px}
+.dock-empty{padding:14px 2px}
+.toasts{bottom:calc(var(--dock-h) + 24px);left:50%;transform:translateX(-50%);align-items:center}
+.promptbar{bottom:calc(var(--dock-h) + 18px)}
+
+.toasts{bottom:calc(var(--dock-h) + 96px)}
+
+/* —— 响应式：中小屏收窄面板，把画布让出来 —— */
+@media (max-width:1280px){
+  .workspace{grid-template-columns:var(--rail-w) 264px minmax(0,1fr) 300px}
+  .app.panel-closed .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 300px}
+}
+@media (max-width:1120px){
+  .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 292px}
+  .app.panel-closed .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 292px}
+  .panel{display:none}
+  .panel-reopen{left:var(--rail-w)}
+}
+@media (max-width:900px){
+  .workspace{grid-template-columns:var(--rail-w) 0 minmax(0,1fr) 0}
+  .inspector-col{display:none}
+  .gen-card{display:none}
+  .promptbar{width:calc(100% - 24px);bottom:calc(var(--dock-h) + 10px)}
+  .tool-hint{display:none}
+}
+
+/* —— 显式栅格定位：隐藏任一栏都不会挤走画布 —— */
+.rail{grid-column:1;grid-row:1}
+.panel{grid-column:2;grid-row:1}
+.stage{grid-column:3;grid-row:1}
+.inspector-col{grid-column:4;grid-row:1}
