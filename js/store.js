@@ -203,16 +203,24 @@
   };
 
   Store.setFrame = function (frame) {
+    if (typeof frame === 'string') frame = DATA.frameById(frame);
+    if (!frame || !frame.w || !frame.h) return;
     const old = this.doc.canvas;
     const sx = frame.w / old.w, sy = frame.h / old.h;
+    const sc = Math.min(sx, sy);
     this.doc.frameId = frame.id;
     this.doc.canvas.w = frame.w;
     this.doc.canvas.h = frame.h;
-    this.doc.canvas.bg = frame.w > 0 ? this.doc.canvas.bg : this.doc.canvas.bg;
-    // 按比例迁移图层
+    // 按比例迁移图层（位置/尺寸/字号/圆角/描边/阴影一起缩放，避免放大后比例走样）
     this.doc.layers.forEach((l) => {
       l.x *= sx; l.y *= sy; l.w *= sx; l.h *= sy;
-      if (l.type === 'text') l.size *= Math.min(sx, sy);
+      if (l.type === 'text') {
+        l.size *= sc;
+        if (l.tracking) l.tracking *= sc;
+      }
+      if (typeof l.radius === 'number') l.radius *= sc;
+      if (typeof l.strokeW === 'number') l.strokeW *= sc;
+      if (l.shadow) { l.shadow.x *= sx; l.shadow.y *= sy; l.shadow.blur *= sc; }
     });
     this.emit('doc'); this.commit('改尺寸');
   };

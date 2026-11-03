@@ -236,7 +236,7 @@
     if (ls.length === 0) {
       sep();
       add(selectField('画板', DATA.FRAMES.map((f) => ({ id: f.id, name: f.name + ' · ' + f.w + '×' + f.h })), doc.frameId,
-        (v) => Store.setFrame(v)));
+        (v) => { Store.setFrame(DATA.frameById(v) || v); ED.fit(); CH.obRender(); CH.statusRender(); }));
       add(colorField('背景', doc.canvas.bg, (v) => { Store.doc.canvas.bg = v; Store.commit('画布背景'); }));
       sep();
       add(numField('颗粒', (doc.canvas.overlay || {}).grain || 0, (v) => { doc.canvas.overlay.grain = v; Store.commit('颗粒'); }));

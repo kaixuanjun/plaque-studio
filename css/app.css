@@ -1198,3 +1198,19 @@ kbd{
 .layers-scroll .layer-list{display:flex;flex-direction:column;gap:2px}
 .layers-scroll .layer-row{height:30px}
 .dock-closed .dockright{display:none}
+
+/* —— 画板切换：底部停车区已并入右侧面板，这里去掉 --dock-h 依赖 —— */
+:root{--dock-h:0px}
+.viewport{padding-bottom:96px}
+.promptbar{bottom:16px}
+.toasts{bottom:40px}
+
+/* 画布滚动条隐藏（PS 式：用抓手/缩放平移） */
+.viewport{scrollbar-width:none}
+.viewport::-webkit-scrollbar{width:0;height:0}
+
+/* 画板始终完整可见：视口裁切溢出，缩放锚点仍用 scrollLeft/Top 计算 */
+.stage .viewport{overflow:hidden}
+
+/* 提示条避开常驻 prompt 条 */
+.toasts{bottom:100px}
