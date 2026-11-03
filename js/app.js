@@ -379,6 +379,7 @@
     syncStage();
     syncHeader();
     PANELS.inspector();
+    if (window.CHROME) CHROME.init();
     expose();
 
     const stop = $('#btnBusyStop');

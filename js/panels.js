@@ -1225,8 +1225,10 @@
 
   PANELS.renderDock = function () {
     const list = document.getElementById('dockList');
-    const cnt = document.getElementById('dockCount');
-    if (cnt) cnt.textContent = String(ARTS.length);
+    ['dockCount', 'dockCount2'].forEach((id) => {
+      const c = document.getElementById(id);
+      if (c) c.textContent = String(ARTS.length);
+    });
     if (!list) return;
     list.innerHTML = '';
     if (!ARTS.length) {
@@ -1248,6 +1250,22 @@
       list.appendChild(it);
     });
   };
+
+  /* 把某个面板渲染到指定容器（右侧停靠面板用） */
+  PANELS.renderInto = function (hostId, name) {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    host.innerHTML = '';
+    const fn = BUILDERS[name] || panelTemplates;
+    try {
+      const node = fn();
+      if (node) host.appendChild(node);
+    } catch (err) {
+      host.appendChild(mk('p', 'p-tip', '面板渲染失败：' + err.message));
+    }
+  };
+
+  PANELS.arts = function () { return ARTS.slice(); };
 
   function insertFromDock(id) {
     const a = ARTS.find((x) => x.id === id);

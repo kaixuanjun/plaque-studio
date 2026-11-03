@@ -52,32 +52,33 @@
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></symbol>
     <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 3l7 17 2.2-6.4L21 11z"/></symbol>
+    <symbol id="i-square" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 11V5.5a1.5 1.5 0 0 1 3 0V11m0 0V4.5a1.5 1.5 0 0 1 3 0V11m0 0V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-bar" viewBox="0 0 24 24"><path d="M4 20V4h16"/></symbol>
   </defs>
 </svg>
 
-<div class="app" id="app">
-  <!-- ============ TOP BAR ============ -->
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark"><svg class="i"><use href="#i-logo"/></svg></span>
-      <div class="brand-txt"><b>Plaque</b><span>Studio</span></div>
-    </div>
 
-    <div class="docbar">
-      <input id="docName" class="doc-name" value="未命名海报" spellcheck="false" aria-label="文档名称" />
-      <span class="doc-dot" aria-hidden="true">·</span>
-      <button class="chip" id="btnSize" title="切换画板尺寸">
+<div class="app" id="app">
+  <!-- ============ 菜单栏 ============ -->
+  <header class="menubar" id="menubar">
+    <div class="mb-brand"><svg class="i"><use href="#i-logo"/></svg><b>Plaque</b></div>
+    <nav class="mb-menus" id="menuBar">
+      <button class="mb-item" data-menu="file">文件</button>
+      <button class="mb-item" data-menu="edit">编辑</button>
+      <button class="mb-item" data-menu="object">对象</button>
+      <button class="mb-item" data-menu="type">文字</button>
+      <button class="mb-item" data-menu="effect">效果</button>
+      <button class="mb-item" data-menu="view">视图</button>
+      <button class="mb-item" data-menu="help">帮助</button>
+    </nav>
+    <div class="mb-right">
+      <button class="chip" id="btnSize" title="画板尺寸 (Ctrl+Alt+N)">
         <svg class="i"><use href="#i-grid"/></svg><span id="sizeLabel">1080 × 1440</span>
       </button>
-      <span class="saved-note" id="savedNote" hidden>已自动保存</span>
-    </div>
-
-    <div class="top-actions">
-      <div class="history">
-        <button class="icon-btn" id="btnUndo" title="撤销 (Ctrl+Z)" aria-label="撤销"><svg class="i"><use href="#i-undo"/></svg></button>
-        <button class="icon-btn" id="btnRedo" title="重做 (Ctrl+Shift+Z)" aria-label="重做"><svg class="i"><use href="#i-redo"/></svg></button>
-      </div>
-      <span class="vsep"></span>
       <button class="btn ghost" id="btnAiOpen"><svg class="i accent"><use href="#i-sparkle"/></svg>生成插画</button>
       <button class="icon-btn" id="btnSettings" title="AI 接口设置" aria-label="AI 接口设置"><svg class="i"><use href="#i-settings"/></svg></button>
       <div class="dd" id="ddExport">
@@ -92,24 +93,40 @@
           <button data-export="open"><svg class="i"><use href="#i-upload"/></svg><span>打开工程 · JSON</span><em>继续编辑</em></button>
         </div>
       </div>
-      <button class="icon-btn" id="btnHelp" title="快捷键与 API" aria-label="帮助"><svg class="i"><use href="#i-play"/></svg></button>
+      <span class="saved-note" id="savedNote" hidden>已保存</span>
     </div>
   </header>
 
-  <!-- ============ WORKSPACE ============ -->
+  <!-- ============ 工具选项栏 ============ -->
+  <div class="optionsbar" id="optionsBar" aria-label="工具选项"></div>
+
+  <!-- ============ 工作区 ============ -->
   <div class="workspace">
-    <!-- rail -->
-    <nav class="rail" id="rail" aria-label="功能面板">
-      <button class="rail-btn is-active" data-panel="templates"><svg class="i"><use href="#i-grid"/></svg><span>模板</span></button>
-      <button class="rail-btn" data-panel="text"><svg class="i"><use href="#i-type"/></svg><span>文字</span></button>
-      <button class="rail-btn" data-panel="elements"><svg class="i"><use href="#i-shapes"/></svg><span>元素</span></button>
-      <button class="rail-btn" data-panel="image"><svg class="i"><use href="#i-image"/></svg><span>图片</span></button>
-      <button class="rail-btn" data-panel="effects"><svg class="i"><use href="#i-sliders"/></svg><span>效果</span></button>
-      <button class="rail-btn rail-ai" data-panel="ai"><svg class="i"><use href="#i-sparkle"/></svg><span>AI 插画</span></button>
-      <button class="rail-btn" data-panel="layers"><svg class="i"><use href="#i-layers"/></svg><span>图层</span></button>
+    <!-- 左侧工具箱 -->
+    <nav class="toolbox" id="rail" aria-label="工具箱">
+      <button class="rail-btn is-active" data-panel="templates" data-tip="模板"><svg class="i"><use href="#i-grid"/></svg><span>模板</span></button>
+      <button class="rail-btn" data-panel="text" data-tip="文字预设"><svg class="i"><use href="#i-type"/></svg><span>文字</span></button>
+      <button class="rail-btn" data-panel="elements" data-tip="形状 / 图标"><svg class="i"><use href="#i-shapes"/></svg><span>元素</span></button>
+      <button class="rail-btn" data-panel="image" data-tip="图片"><svg class="i"><use href="#i-image"/></svg><span>图片</span></button>
+      <button class="rail-btn" data-panel="effects" data-tip="特效"><svg class="i"><use href="#i-sliders"/></svg><span>效果</span></button>
+      <button class="rail-btn rail-ai" data-panel="ai" data-tip="AI 插画"><svg class="i"><use href="#i-sparkle"/></svg><span>AI 插画</span></button>
+      <button class="rail-btn" data-panel="layers" data-tip="图层"><svg class="i"><use href="#i-layers"/></svg><span>图层</span></button>
+      <span class="tb-sep"></span>
+      <button class="tb-btn is-on" data-tool="select" data-tip="移动工具 (V)"><svg class="i"><use href="#i-arrow"/></svg></button>
+      <button class="tb-btn" data-tool="text" data-tip="文字工具 (T)"><svg class="i"><use href="#i-type"/></svg></button>
+      <button class="tb-btn" data-tool="rect" data-tip="矩形工具 (U)"><svg class="i"><use href="#i-square"/></svg></button>
+      <button class="tb-btn" data-tool="ellipse" data-tip="椭圆工具 (O)"><svg class="i"><use href="#i-circle"/></svg></button>
+      <button class="tb-btn" data-tool="hand" data-tip="抓手工具 (H)"><svg class="i"><use href="#i-hand"/></svg></button>
+      <button class="tb-btn" data-tool="zoom" data-tip="缩放工具 (Z)"><svg class="i"><use href="#i-search"/></svg></button>
+      <span class="tb-sep"></span>
+      <span class="tb-colors" id="tbColors" title="前景 / 背景色">
+        <button class="sw-fore" id="tbFore" aria-label="前景色"></button>
+        <button class="sw-back" id="tbBack" aria-label="背景色"></button>
+      </span>
+      <button class="tb-btn" id="btnHelp" data-tip="快捷键 (?)"><svg class="i"><use href="#i-play"/></svg></button>
     </nav>
 
-    <!-- left panel -->
+    <!-- 左侧素材面板 -->
     <aside class="panel" id="panel" aria-label="素材面板">
       <div class="panel-head">
         <h2 id="panelTitle">模板</h2>
@@ -119,66 +136,92 @@
     </aside>
     <button class="panel-reopen" id="btnPanelOpen" title="展开面板"><svg class="i"><use href="#i-chevron"/></svg></button>
 
-    <!-- stage -->
-    <main class="stage" id="stage">
-      <div class="stage-tools">
-        <div class="tool-pill">
-          <button class="icon-btn sm" id="btnZoomOut" title="缩小" aria-label="缩小"><svg class="i"><use href="#i-minus"/></svg></button>
-          <button class="zoom-label" id="btnZoomFit" title="点击适应窗口">100%</button>
-          <button class="icon-btn sm" id="btnZoomIn" title="放大" aria-label="放大"><svg class="i"><use href="#i-plus"/></svg></button>
-          <span class="vsep"></span>
-          <button class="tool-txt" id="btnToggleSafe" title="显示/隐藏安全区">安全区</button>
-          <button class="tool-txt" id="btnPlayAnim" title="预览动效"><svg class="i sm"><use href="#i-play"/></svg>动效</button>
+    <!-- 文档区 -->
+    <main class="docarea">
+      <div class="doctabs">
+        <div class="doctab is-active" title="当前文档">
+          <svg class="i sm"><use href="#i-file"/></svg>
+          <input id="docName" value="未命名海报" spellcheck="false" aria-label="文档名称" />
+          <span class="doctab-dirty" id="docDirty" hidden>●</span>
         </div>
-        <div class="tool-hint" id="stageHint">双击文字编辑 · 拖角点缩放 · Alt 拖拽复制</div>
-      </div>
-
-      <div class="viewport" id="viewport">
-        <div class="stage-inner" id="stageInner">
-          <div class="poster-shadow" id="posterShadow"></div>
-          <div class="poster" id="poster" aria-label="海报画板"></div>
-          <div class="poster-meta" id="posterMeta">1080 × 1440 px</div>
+        <button class="doctab-add" id="btnNewDoc" title="新建文档"><svg class="i sm"><use href="#i-plus"/></svg></button>
+        <div class="doctab-right">
+          <button class="icon-btn sm" id="btnUndo" title="撤销 (Ctrl+Z)" aria-label="撤销"><svg class="i"><use href="#i-undo"/></svg></button>
+          <button class="icon-btn sm" id="btnRedo" title="重做 (Ctrl+Shift+Z)" aria-label="重做"><svg class="i"><use href="#i-redo"/></svg></button>
         </div>
       </div>
 
-      <!-- 生成提示条：像 ArtCraft 一样随时可写 prompt -->
-      <div class="promptbar" id="promptBar">
-        <span class="prompt-badge"><svg class="i sm"><use href="#i-sparkle"/></svg></span>
-        <input id="promptInput" placeholder="描述插画：深空的粒子星环，蓝紫渐变，缓慢旋转…" spellcheck="false" />
-        <button class="prompt-chip" id="promptStyle" title="选择风格">扁平矢量</button>
-        <button class="btn primary sm" id="promptRun">生成</button>
-        <button class="icon-btn sm" id="promptMore" title="打开完整生成器"><svg class="i"><use href="#i-sliders"/></svg></button>
+      <div class="stage" id="stage">
+        <div class="ruler ruler-h" id="rulerH" aria-hidden="true"></div>
+        <div class="ruler ruler-v" id="rulerV" aria-hidden="true"></div>
+        <div class="viewport" id="viewport">
+          <div class="stage-inner" id="stageInner">
+            <div class="poster-shadow" id="posterShadow"></div>
+            <div class="poster" id="poster" aria-label="海报画板"></div>
+            <div class="poster-meta" id="posterMeta">1080 × 1440 px</div>
+          </div>
+        </div>
+
+        <div class="promptbar" id="promptBar">
+          <span class="prompt-badge"><svg class="i sm"><use href="#i-sparkle"/></svg></span>
+          <input id="promptInput" placeholder="描述插画：深空的粒子星环，蓝紫渐变，缓慢旋转…" spellcheck="false" />
+          <button class="prompt-chip" id="promptStyle" title="选择风格">扁平矢量</button>
+          <button class="btn primary sm" id="promptRun">生成</button>
+          <button class="icon-btn sm" id="promptMore" title="打开完整生成器"><svg class="i"><use href="#i-sliders"/></svg></button>
+        </div>
       </div>
 
-      <!-- 素材库（生成结果收集） -->
-      <div class="dock" id="dock">
-        <div class="dock-head">
-          <b>素材库</b><span class="dock-count" id="dockCount">0</span>
-          <button class="icon-btn sm" id="btnDockCollapse" title="收起素材库"><svg class="i"><use href="#i-chevron"/></svg></button>
-        </div>
-        <div class="dock-list" id="dockList"></div>
-      </div>
+      <footer class="statusbar" id="statusBar">
+        <span class="sb-zoom">
+          <button class="icon-btn sm" id="btnZoomOut" title="缩小 (Ctrl+-)" aria-label="缩小"><svg class="i"><use href="#i-minus"/></svg></button>
+          <button class="zoom-label" id="btnZoomFit" title="点击适应窗口 (Ctrl+0)">100%</button>
+          <button class="icon-btn sm" id="btnZoomIn" title="放大 (Ctrl++)" aria-label="放大"><svg class="i"><use href="#i-plus"/></svg></button>
+        </span>
+        <span class="vsep"></span>
+        <span class="sb-info" id="sbInfo">1080 × 1440 px · RGB</span>
+        <span class="sb-hint" id="sbHint">双击文字编辑 · 拖角点缩放 · Alt 拖拽复制</span>
+        <span class="sb-right">
+          <button class="sb-btn" id="btnToggleSafe" title="安全区">安全区</button>
+          <button class="sb-btn" id="btnPlayAnim" title="动效预览"><svg class="i sm"><use href="#i-play"/></svg>动效</button>
+          <button class="sb-btn" id="btnToggleDock" title="显示/隐藏右侧面板"><svg class="i sm"><use href="#i-layers"/></svg></button>
+        </span>
+      </footer>
     </main>
 
-    <!-- inspector -->
-    <aside class="inspector-col">
-      <section class="gen-card" id="genCard">
-        <header class="gen-head">
-          <span class="gen-title"><svg class="i sm accent"><use href="#i-sparkle"/></svg>生成</span>
-          <span class="gen-model" id="genModel">本地算法</span>
-        </header>
-        <textarea id="genBrief" rows="2" placeholder="一句话描述，回车生成"></textarea>
-        <div class="gen-foot">
-          <select id="genStyle" aria-label="风格"></select>
-          <button class="btn primary sm" id="genRun">生成</button>
+    <!-- 右侧停靠面板 -->
+    <aside class="dockright" id="dockRight">
+      <div class="dr-tabs" id="drTabs" role="tablist">
+        <button class="dr-tab is-active" data-tab="props">属性</button>
+        <button class="dr-tab" data-tab="layers">图层</button>
+        <button class="dr-tab" data-tab="gen">生成</button>
+        <button class="dr-tab" data-tab="arts">素材库<span class="dr-count" id="dockCount">0</span></button>
+      </div>
+      <div class="dr-body">
+        <div class="dr-pane is-active" data-pane="props"><aside class="inspector" id="inspector" aria-label="属性面板"></aside></div>
+        <div class="dr-pane" data-pane="layers"><div class="inspector" id="layersHost"></div></div>
+        <div class="dr-pane" data-pane="gen">
+          <section class="gen-card" id="genCard">
+            <header class="gen-head">
+              <span class="gen-title"><svg class="i sm accent"><use href="#i-sparkle"/></svg>生成插画</span>
+              <span class="gen-model" id="genModel">本地算法</span>
+            </header>
+            <textarea id="genBrief" rows="3" placeholder="一句话描述，回车生成"></textarea>
+            <div class="gen-foot">
+              <select id="genStyle" aria-label="风格"></select>
+              <button class="btn primary sm" id="genRun">生成</button>
+            </div>
+            <p class="gen-tip">插画由大模型写 Canvas 代码生成，可播放、可导出视频。</p>
+          </section>
         </div>
-      </section>
-      <aside class="inspector" id="inspector" aria-label="属性面板"></aside>
+        <div class="dr-pane" data-pane="arts">
+          <div class="dock-head"><b>素材库</b><span class="dock-count" id="dockCount2">0</span></div>
+          <div class="dock-list dock-list-v" id="dockList"></div>
+        </div>
+      </div>
     </aside>
   </div>
 </div>
 
-<!-- ============ MODAL: AI GENERATE ============ -->
 <div class="modal" id="modalAi" aria-hidden="true">
   <div class="modal-card wide" role="dialog" aria-modal="true" aria-labelledby="aiTitle">
     <header class="modal-head">
@@ -350,6 +393,7 @@ window.renderFrame(t)   // 秒，纯函数、可重复
 <script src="js/editor.js"></script>
 <script src="js/panels.js"></script>
 <script src="js/exporter.js"></script>
+<script src="js/chrome.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

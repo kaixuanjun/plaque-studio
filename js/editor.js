@@ -94,10 +94,10 @@
     const doc = Store.doc;
     const vp = viewport();
     if (!doc || !vp) return;
-    /* 顶部浮动工具条与底部 prompt / 素材库占位，避免画板被遮住 */
-    const dock = document.getElementById('dock');
-    const dockH = dock ? dock.getBoundingClientRect().height : 0;
-    const topPad = 92, sidePad = 68, bottomPad = dockH + 104;
+    /* 顶部标尺与底部 prompt 条占位，避免画板被遮住 */
+    const prompt = document.getElementById('promptBar');
+    const promptH = prompt ? prompt.getBoundingClientRect().height : 0;
+    const topPad = 40, sidePad = 56, bottomPad = promptH + 56;
     const availW = Math.max(80, vp.clientWidth - sidePad * 2);
     const availH = Math.max(80, vp.clientHeight - topPad - bottomPad);
     const z = Math.min(availW / doc.canvas.w, availH / doc.canvas.h);
