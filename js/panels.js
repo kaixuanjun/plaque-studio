@@ -551,11 +551,7 @@
     const doc = Store.doc;
 
     const s0 = sec('AI 编程插画');
-    const cta = mk('button', 'btn primary block');
-    cta.innerHTML = svg('i-sparkle') + '打开生成器';
-    cta.addEventListener('click', () => openAi());
-    s0.appendChild(cta);
-    s0.appendChild(mk('p', 'p-tip', '插画由大模型直接写 Canvas 代码，不是文生图：可无限缩放、能播动画、能录成视频。'));
+    s0.appendChild(mk('p', 'p-tip', '插画由大模型直接写 Canvas 代码，不是文生图：可无限缩放、能播动画、能录成视频。完整设置走顶部「生成插画」或画布下缘的 prompt 条。'));
     box.appendChild(s0);
 
     const s1 = sec('本地算法插画（无需 Key）');
@@ -610,21 +606,14 @@
   /* =========================================================
      面板：图层
      ========================================================= */
-  function panelLayers() {
+  /* 图层列表（供「图层」停靠区与面板共用） */
+  function buildLayerList() {
     const doc = Store.doc;
-    const box = mk('div', 'p-stack');
-
-    const s0 = sec('画布');
-    s0.appendChild(color('背景色', doc.canvas.bg, (v) => canvasPatch({ bg: v })));
-    s0.appendChild(select('画板尺寸', DATA.FRAMES.map((f) => ({ id: f.id, name: f.name + ' · ' + f.w + '×' + f.h })), doc.frameId,
-      (v) => { Store.setFrame(DATA.frameById(v)); ED.fit(); PANELS.repaint(); }));
-    box.appendChild(s0);
-
-    const s1 = sec('图层（自下而上）');
     const list = mk('div', 'layer-list');
     const layers = doc.layers.slice().reverse();
     if (!layers.length) {
       list.appendChild(mk('p', 'p-tip', '还没有图层。从「模板」套个版式，或从「元素 / 文字」添加。'));
+      return list;
     }
     layers.forEach((l) => {
       const r = mk('div', 'layer-row' + (Store.sel.indexOf(l.id) >= 0 ? ' is-on' : ''));
@@ -676,7 +665,21 @@
       });
       list.appendChild(r);
     });
-    s1.appendChild(list);
+    return list;
+  }
+
+  function panelLayers() {
+    const doc = Store.doc;
+    const box = mk('div', 'p-stack');
+
+    const s0 = sec('画布');
+    s0.appendChild(color('背景色', doc.canvas.bg, (v) => canvasPatch({ bg: v })));
+    s0.appendChild(select('画板尺寸', DATA.FRAMES.map((f) => ({ id: f.id, name: f.name + ' · ' + f.w + '×' + f.h })), doc.frameId,
+      (v) => { Store.setFrame(DATA.frameById(v)); ED.fit(); PANELS.repaint(); }));
+    box.appendChild(s0);
+
+    const s1 = sec('图层（自下而上）');
+    s1.appendChild(buildLayerList());
     box.appendChild(s1);
 
     const s2 = sec('统计');
@@ -685,6 +688,20 @@
     box.appendChild(s2);
     return box;
   }
+
+  /* 只渲染图层列表到指定容器（右侧常驻「图层」区） */
+  PANELS.renderLayerList = function (hostId) {
+    const host = document.getElementById(hostId);
+    if (!host || !Store.doc) return;
+    const editing = document.activeElement && document.activeElement.classList
+      && document.activeElement.classList.contains('lr-name') && host.contains(document.activeElement);
+    if (!editing) {
+      host.innerHTML = '';
+      host.appendChild(buildLayerList());
+    }
+    const c = document.getElementById('layerCount');
+    if (c) c.textContent = String(Store.doc.layers.length);
+  };
 
   /* =========================================================
      面板路由

@@ -316,19 +316,19 @@
 
   /* ---------------- 停靠面板 ---------------- */
   CH.setTab = function (name) {
+    if (name === 'layers') name = 'props';   // 图层区已常驻下方，不再作为标签
+    if (name === 'gen') name = 'props';
     CH.tab = name;
     $$('.dr-tab').forEach((t) => t.classList.toggle('is-active', t.dataset.tab === name));
     $$('.dr-pane').forEach((p) => p.classList.toggle('is-active', p.dataset.pane === name));
     const app = $('#app');
     if (app) { app.classList.remove('dock-closed'); }
-    if (name === 'layers') CH.renderLayers();
     if (name === 'arts') PANELS.renderDock();
   };
 
   CH.renderLayers = function () {
-    const host = $('#layersHost');
-    if (!host || !Store.doc) return;
-    if (PANELS.renderInto) PANELS.renderInto('layersHost', 'layers');
+    if (!Store.doc) return;
+    if (PANELS.renderLayerList) PANELS.renderLayerList('layersHost');
   };
 
   /* ---------------- 画布工具行为 ---------------- */
@@ -392,11 +392,7 @@
 
   function bindTools() {
     $$('.tb-btn[data-tool]').forEach((b) => b.addEventListener('click', () => setTool(b.dataset.tool)));
-    $$('.rail-btn').forEach((b) => {
-      if (b.dataset.panel === 'layers') {
-        b.addEventListener('click', (e) => { e.stopPropagation(); CH.setTab('layers'); }, true);
-      }
-    });
+
     document.addEventListener('keydown', (e) => {
       const t = e.target;
       if (t && /input|textarea|select/i.test(t.tagName)) return;
@@ -412,6 +408,42 @@
     if (btn) btn.addEventListener('click', () => { $('#app').classList.toggle('dock-closed'); ED.fit(); });
   }
 
+  /* 上下分区拖拽（拖动条在属性区与图层区之间） */
+  function bindSplit() {
+    const split = $('#drSplit');
+    const dock = $('#dockRight');
+    if (!split || !dock) return;
+    let startY = 0, startH = 0, dragging = false;
+    const bottomH = () => {
+      const el = $('#drBottom');
+      return el ? el.getBoundingClientRect().height : 340;
+    };
+    split.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      startY = e.clientY;
+      startH = bottomH();
+      split.setPointerCapture(e.pointerId);
+      document.body.style.cursor = 'row-resize';
+      e.preventDefault();
+    });
+    split.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const h = U.clamp(startH - (e.clientY - startY), 120, dock.getBoundingClientRect().height - 160);
+      dock.style.setProperty('--layers-h', Math.round(h) + 'px');
+    });
+    const stop = () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.cursor = '';
+      U.saveLS('layersH', Math.round(bottomH()));
+    };
+    split.addEventListener('pointerup', stop);
+    split.addEventListener('pointercancel', stop);
+
+    const saved = Number(U.loadLS('layersH', 0));
+    if (saved > 120) dock.style.setProperty('--layers-h', saved + 'px');
+  }
+
   /* ---------------- 初始化 ---------------- */
   CH.init = function () {
     bindMenus();
@@ -419,6 +451,7 @@
     bindTools();
     bindStageTools();
     bindToggle();
+    bindSplit();
     setTool('select');
     CH.obRender();
     CH.statusRender();
@@ -426,16 +459,19 @@
     const setTabByHash = () => CH.setTab('props');
     setTabByHash();
 
+    CH.renderLayers();
+
     Store.on('doc', () => {
       CH.obRender();
       CH.statusRender();
-      if (CH.tab === 'layers') CH.renderLayers();
+      CH.renderLayers();
     });
     Store.on('sel', () => {
       CH.obRender();
       CH.statusRender();
+      CH.renderLayers();
     });
-    Store.on('history', () => CH.statusRender());
+    Store.on('history', () => { CH.statusRender(); CH.renderLayers(); });
 
     const zoomNow = ED.applyZoom;
     if (typeof zoomNow === 'function') {
@@ -453,3 +489,5 @@
 
   window.CHROME = CH;
 })();
+
+

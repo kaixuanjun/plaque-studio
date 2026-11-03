@@ -37,7 +37,8 @@ const FILES = [
   'LICENSE',
   'css/app.css',
   'js/util.js', 'js/data.js', 'js/store.js', 'js/render.js', 'js/localart.js',
-  'js/prompts.js', 'js/ai.js', 'js/editor.js', 'js/panels.js', 'js/exporter.js', 'js/app.js',
+  'js/prompts.js', 'js/ai.js', 'js/editor.js', 'js/panels.js', 'js/exporter.js',
+  'js/chrome.js', 'js/app.js',
   'samples/plaque-demo.html'
 ];
 

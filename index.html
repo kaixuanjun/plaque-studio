@@ -110,7 +110,6 @@
       <button class="rail-btn" data-panel="image" data-tip="图片"><svg class="i"><use href="#i-image"/></svg><span>图片</span></button>
       <button class="rail-btn" data-panel="effects" data-tip="特效"><svg class="i"><use href="#i-sliders"/></svg><span>效果</span></button>
       <button class="rail-btn rail-ai" data-panel="ai" data-tip="AI 插画"><svg class="i"><use href="#i-sparkle"/></svg><span>AI 插画</span></button>
-      <button class="rail-btn" data-panel="layers" data-tip="图层"><svg class="i"><use href="#i-layers"/></svg><span>图层</span></button>
       <span class="tb-sep"></span>
       <button class="tb-btn is-on" data-tool="select" data-tip="移动工具 (V)"><svg class="i"><use href="#i-arrow"/></svg></button>
       <button class="tb-btn" data-tool="text" data-tip="文字工具 (T)"><svg class="i"><use href="#i-type"/></svg></button>
@@ -188,35 +187,27 @@
       </footer>
     </main>
 
-    <!-- 右侧停靠面板 -->
+    <!-- 右侧停靠面板：上半区 属性/素材库，下半区 常驻图层 -->
     <aside class="dockright" id="dockRight">
-      <div class="dr-tabs" id="drTabs" role="tablist">
-        <button class="dr-tab is-active" data-tab="props">属性</button>
-        <button class="dr-tab" data-tab="layers">图层</button>
-        <button class="dr-tab" data-tab="gen">生成</button>
-        <button class="dr-tab" data-tab="arts">素材库<span class="dr-count" id="dockCount">0</span></button>
+      <div class="dr-top">
+        <div class="dr-tabs" id="drTabs" role="tablist">
+          <button class="dr-tab is-active" data-tab="props">属性</button>
+          <button class="dr-tab" data-tab="arts">素材库<span class="dr-count" id="dockCount">0</span></button>
+        </div>
+        <div class="dr-body">
+          <div class="dr-pane is-active" data-pane="props"><aside class="inspector" id="inspector" aria-label="属性面板"></aside></div>
+          <div class="dr-pane" data-pane="arts">
+            <div class="dock-head"><b>素材库</b><span class="dock-count" id="dockCount2">0</span></div>
+            <div class="dock-list dock-list-v" id="dockList"></div>
+          </div>
+        </div>
       </div>
-      <div class="dr-body">
-        <div class="dr-pane is-active" data-pane="props"><aside class="inspector" id="inspector" aria-label="属性面板"></aside></div>
-        <div class="dr-pane" data-pane="layers"><div class="inspector" id="layersHost"></div></div>
-        <div class="dr-pane" data-pane="gen">
-          <section class="gen-card" id="genCard">
-            <header class="gen-head">
-              <span class="gen-title"><svg class="i sm accent"><use href="#i-sparkle"/></svg>生成插画</span>
-              <span class="gen-model" id="genModel">本地算法</span>
-            </header>
-            <textarea id="genBrief" rows="3" placeholder="一句话描述，回车生成"></textarea>
-            <div class="gen-foot">
-              <select id="genStyle" aria-label="风格"></select>
-              <button class="btn primary sm" id="genRun">生成</button>
-            </div>
-            <p class="gen-tip">插画由大模型写 Canvas 代码生成，可播放、可导出视频。</p>
-          </section>
+      <div class="dr-split" id="drSplit" title="拖动调整高度"></div>
+      <div class="dr-bottom" id="drBottom">
+        <div class="dr-bottom-head">
+          <b>图层</b><span class="dr-count" id="layerCount">0</span>
         </div>
-        <div class="dr-pane" data-pane="arts">
-          <div class="dock-head"><b>素材库</b><span class="dock-count" id="dockCount2">0</span></div>
-          <div class="dock-list dock-list-v" id="dockList"></div>
-        </div>
+        <div class="layers-scroll" id="layersHost"></div>
       </div>
     </aside>
   </div>

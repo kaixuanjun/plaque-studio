@@ -224,6 +224,7 @@
     }
     const ps = $('#promptStyle');
     let styleIdx = 0;
+    const curStyle = () => (styles[styleIdx] && styles[styleIdx].id) || '';
     const paintStyle = () => {
       const s = styles[styleIdx];
       if (ps && s) ps.textContent = '风格：' + s.name;
@@ -252,16 +253,16 @@
 
     const pi = $('#promptInput');
     const run = $('#promptRun');
-    if (run) run.addEventListener('click', () => launch(pi && pi.value, gs && gs.value));
+    if (run) run.addEventListener('click', () => launch(pi && pi.value, curStyle()));
     if (pi) pi.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); launch(pi.value, gs && gs.value); }
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); launch(pi.value, curStyle()); }
     });
     const more = $('#promptMore');
     if (more) more.addEventListener('click', () => window.openAi(pi ? pi.value : ''));
 
     const gb = $('#genBrief');
     const grun = $('#genRun');
-    const genRun = () => launch(gb && gb.value, gs && gs.value);
+    const genRun = () => launch(gb && gb.value, curStyle());
     if (grun) grun.addEventListener('click', genRun);
     if (gb) gb.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); genRun(); }
@@ -397,4 +398,5 @@
 
   window.__BOOTED = () => booted;
 })();
+
 
