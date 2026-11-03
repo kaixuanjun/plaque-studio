@@ -230,10 +230,12 @@
         <code>POST {BaseURL}/chat/completions</code>
         <span>也挂载了 <code>window.Plaque.ai.generate()</code> 供脚本调用。</span>
       </div>
+      <pre class="cfg-diag" id="cfgDiag" hidden></pre>
     </div>
     <footer class="modal-foot">
       <span class="hint" id="cfgState">未配置</span>
       <div class="foot-actions">
+        <button class="btn ghost" id="btnCfgCopy" title="把诊断信息复制到剪贴板">复制诊断</button>
         <button class="btn ghost" id="btnCfgTest">测试连通</button>
         <button class="btn primary" id="btnCfgSave">保存</button>
       </div>

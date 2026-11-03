@@ -24,7 +24,12 @@
     return s ? Object.assign(d, s) : d;
   };
   AI.saveCfg = function (o) {
-    U.saveLS(LSKEY, Object.assign(AI.cfg(), o || {}));
+    const next = Object.assign(AI.cfg(), o || {});
+    if (o && 'base' in o) next.base = AI.normBase(o.base);
+    if (o && 'key' in o) next.key = AI.normKey(o.key);
+    if (next.model) next.model = String(next.model).trim();
+    U.saveLS(LSKEY, next);
+    return next;
   };
   AI.ready = function () {
     const c = AI.cfg();
@@ -71,11 +76,70 @@
     if (ctrl) { try { ctrl.abort(); } catch (e) {} ctrl = null; }
   };
 
+  /* ---------- 配置清洗：把常见的粘贴错误吃掉 ---------- */
+  const ROOT_MAP = [
+    [/^https?:\/\/api\.openai\.com$/i, '/v1'],
+    [/^https?:\/\/api\.deepseek\.com$/i, '/v1'],
+    [/^https?:\/\/api\.moonshot\.cn$/i, '/v1'],
+    [/^https?:\/\/open\.bigmodel\.cn$/i, '/api/paas/v4'],
+    [/^https?:\/\/dashscope\.aliyuncs\.com$/i, '/compatible-mode/v1'],
+    [/^https?:\/\/api\.siliconflow\.cn$/i, '/v1'],
+    [/^https?:\/\/(localhost|127\.0\.0\.1):11434$/i, '/v1']
+  ];
+  AI.normBase = function (b) {
+    let s = String(b || '').trim().replace(/^["'`\s]+|["'`\s]+$/g, '');
+    if (!s) return '';
+    s = s.replace(/\s+/g, '');
+    if (!/^https?:\/\//i.test(s)) {
+      // 本机/局域网默认 http，公网默认 https
+      const local = /^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(s);
+      s = (local ? 'http://' : 'https://') + s;
+    }
+    s = s.replace(/\/(chat\/completions|completions|models|embeddings)\/?$/i, '');
+    for (const [re, tail] of ROOT_MAP) if (re.test(s)) { s += tail; break; }
+    return s.replace(/\/+$/, '');
+  };
+  AI.normKey = function (k) {
+    return String(k || '').trim().replace(/^["'`\s]+|["'`\s]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s+/g, '');
+  };
+  AI.endpoint = function () {
+    const c = AI.cfg();
+    const base = AI.normBase(c.base);
+    return base ? base + '/chat/completions' : '';
+  };
+
+  /* ---------- 把 HTTP 错误翻译成人能看懂的诊断 ---------- */
+  function explain(status, body, base) {
+    const b = String(body || '').slice(0, 200);
+    const map = {
+      400: '请求被拒（400）。多半是 model 名写错，或该模型不接受当前参数。',
+      401: 'Key 校验失败（401）。三种可能：① Key 复制不全/已失效；② Key 与 Base URL 不是同一家（比如拿 DeepSeek 的 Key 填了 OpenAI 的地址）；③ 这是中转站地址却用了官方 Key。',
+      402: '余额不足（402）。',
+      403: '拒绝访问（403）。Key 没有该模型权限，或该地区被限制。',
+      404: '路径不存在（404）。Base URL 应填到版本号为止，例如 https://api.deepseek.com/v1 —— 不要带 /chat/completions。当前拼出的是 ' + base + '/chat/completions',
+      429: '被限流或额度用尽（429）。等一会儿或换模型/换 Key。',
+      500: '服务端错误（500），与 Key 无关，稍后重试。',
+      502: '网关错误（502），服务商侧问题。',
+      503: '服务不可用（503），通常是模型过载。'
+    };
+    return (map[status] || ('HTTP ' + status)) + (b ? '\n返回：' + b : '');
+  }
+
+  function netError(e, base) {
+    const m = String((e && e.message) || e);
+    if (/Failed to fetch|NetworkError|Load failed/i.test(m)) {
+      return '网络层失败：请求没到达 ' + base + '。常见原因：① 该服务商不允许浏览器直连（CORS），需要中转地址或本地代理；② 地址拼错/服务未启动；③ 浏览器扩展或网络拦截。\n原始信息：' + m;
+    }
+    return m;
+  }
+
   AI.chat = async function (messages, opt) {
     opt = opt || {};
     const c = AI.cfg();
-    if (!c.base) throw new Error('未配置 API 地址：点击右上角「设置」填写 Base URL 与 Key');
-    const url = c.base.replace(/\/+$/, '') + '/chat/completions';
+    const base = AI.normBase(c.base);
+    const key = AI.normKey(c.key);
+    if (!base) throw new Error('未配置 API 地址：点击右上角「设置」填写 Base URL 与 Key');
+    const url = base + '/chat/completions';
     const body = {
       model: opt.model || c.model,
       messages,
@@ -83,19 +147,30 @@
       stream: opt.stream != null ? opt.stream : !!c.stream
     };
     ctrl = new AbortController();
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: Object.assign(
-        { 'Content-Type': 'application/json' },
-        c.key ? { Authorization: 'Bearer ' + c.key } : {}
-      ),
-      body: JSON.stringify(body),
-      signal: ctrl.signal
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: Object.assign(
+          { 'Content-Type': 'application/json' },
+          key ? { Authorization: 'Bearer ' + key } : {}
+        ),
+        body: JSON.stringify(body),
+        signal: ctrl.signal
+      });
+    } catch (e) {
+      if (e && e.name === 'AbortError') throw e;
+      const err = new Error(netError(e, base));
+      err.net = true;
+      throw err;
+    }
     if (!res.ok) {
       let t = '';
       try { t = await res.text(); } catch (e) {}
-      throw new Error('HTTP ' + res.status + ' ' + (t || res.statusText).slice(0, 300));
+      const err = new Error(explain(res.status, t, base));
+      err.status = res.status;
+      err.body = t;
+      throw err;
     }
     const ct = res.headers.get('content-type') || '';
     if (!body.stream || ct.indexOf('text/event-stream') < 0) {
@@ -131,13 +206,63 @@
     return out;
   };
 
+  /* ---------- 连通测试：先探 /models 再试一次最小对话 ---------- */
   AI.test = async function () {
+    const c = AI.cfg();
+    const base = AI.normBase(c.base);
+    const key = AI.normKey(c.key);
+    if (!base) throw new Error('还没填 Base URL。例：https://api.deepseek.com/v1');
+    if (!key && !/^http:\/\/(localhost|127\.0\.0\.1)/i.test(base)) throw new Error('还没填 API Key。');
+    AI.saveCfg({ base, key });
+
+    const lines = [];
     const t0 = performance.now();
-    const txt = await AI.chat(
-      [{ role: 'user', content: '只回复两个字：正常' }],
-      { stream: false, temp: 0 }
-    );
-    return { ok: true, ms: Math.round(performance.now() - t0), text: String(txt).slice(0, 40) };
+
+    // ① 鉴权探测：/models 只验证 Key，不消耗生成额度
+    let models = null;
+    try {
+      const r = await fetch(base + '/models', {
+        headers: key ? { Authorization: 'Bearer ' + key } : {}
+      });
+      if (r.ok) {
+        const j = await r.json().catch(() => null);
+        const n = j && Array.isArray(j.data) ? j.data.length : 0;
+        models = true;
+        lines.push('鉴权 GET /models → 200' + (n ? '（可用模型 ' + n + ' 个）' : '') + ' ✅');
+      } else if (r.status === 401 || r.status === 403) {
+        lines.push('鉴权 GET /models → ' + r.status + ' ❌');
+        lines.push(explain(r.status, await r.text().catch(() => ''), base));
+        const err = new Error(lines.join('\n'));
+        err.status = r.status;
+        throw err;
+      } else {
+        models = false;
+        lines.push('鉴权 GET /models → ' + r.status + '（该服务不暴露 /models，跳过）');
+      }
+    } catch (e) {
+      if (e && e.status) throw e;
+      const m = String((e && e.message) || e);
+      if (/Failed to fetch|NetworkError|Load failed/i.test(m)) {
+        lines.push('鉴权 GET /models → 网络不可达（地址不通或被 CORS 拦）');
+        throw new Error(netError(e, base));
+      }
+      models = false;
+      lines.push('鉴权 GET /models → 不可用（该服务不暴露此接口，跳过）');
+    }
+
+    // ② 最小对话
+    let txt = '';
+    try {
+      txt = await AI.chat([{ role: 'user', content: '只回复两个字：正常' }], { stream: false, temp: 0 });
+      lines.push('对话 POST /chat/completions → 200 ✅ 模型回复：' + String(txt).slice(0, 30));
+    } catch (e) {
+      lines.push('对话 POST /chat/completions → 失败');
+      lines.push(e.message || String(e));
+      const err = new Error(lines.join('\n'));
+      err.status = e.status;
+      throw err;
+    }
+    return { ok: true, ms: Math.round(performance.now() - t0), text: String(txt).slice(0, 40), models, base, lines };
   };
 
   /* ---------- 主流程：生成插画程序 ---------- */

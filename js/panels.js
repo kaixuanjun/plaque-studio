@@ -1255,35 +1255,91 @@
     });
 
     // 设置
+    const setDiag = (t, cls) => {
+      const d = document.getElementById('cfgDiag');
+      if (d) {
+        d.hidden = !t;
+        d.textContent = t || '';
+        d.classList.toggle('is-bad', cls === 'bad');
+        d.classList.toggle('is-good', cls === 'good');
+      }
+    };
+    const setState = (t, cls) => {
+      const state = document.getElementById('cfgState');
+      if (!state) return;
+      state.textContent = t;
+      state.classList.toggle('is-bad', cls === 'bad');
+      state.classList.toggle('is-good', cls === 'good');
+    };
     const save = document.getElementById('btnCfgSave');
     if (save) save.addEventListener('click', () => {
-      AI.saveCfg({
+      const c = AI.saveCfg({
         base: (document.getElementById('cfgBase') || {}).value || '',
         key: (document.getElementById('cfgKey') || {}).value || '',
         model: (document.getElementById('cfgModel') || {}).value || '',
         temp: parseFloat((document.getElementById('cfgTemp') || {}).value || 0.7),
         stream: !!(document.getElementById('cfgStream') || {}).checked
       });
-      const state = document.getElementById('cfgState');
-      if (state) state.textContent = AI.ready() ? '已保存' : '未配置';
+      // 回填清洗后的值，用户能看到「Bearer 」前缀之类被去掉了
+      const bi = document.getElementById('cfgBase'); if (bi) bi.value = c.base;
+      const ki = document.getElementById('cfgKey'); if (ki) ki.value = c.key;
+      setDiag('', '');
+      setState(AI.ready() ? '已保存 · ' + c.model : '未配置', AI.ready() ? 'good' : '');
       const hint = document.getElementById('aiCfgHint');
-      if (hint) hint.textContent = AI.ready() ? '接口已就绪，将调用 ' + AI.cfg().model + ' 生成代码。' : '未配置接口，将使用本地算法插画引擎。';
+      if (hint) hint.textContent = AI.ready() ? '接口已就绪，将调用 ' + c.model + ' 生成代码。' : '未配置接口，将使用本地算法插画引擎。';
       U.toast('接口设置已保存');
     });
+    // 复制诊断
+    const copy = document.getElementById('btnCfgCopy');
+    if (copy) copy.addEventListener('click', async () => {
+      const d = document.getElementById('cfgDiag');
+      const c = AI.cfg();
+      const txt = [
+        'Plaque 接口诊断',
+        '时间: ' + new Date().toLocaleString('zh-CN'),
+        'UA: ' + navigator.userAgent,
+        'Base: ' + (c.base || '(空)'),
+        'Model: ' + (c.model || '(空)'),
+        'Key: ' + (c.key ? c.key.slice(0, 6) + '…（长度 ' + c.key.length + '）' : '(空)'),
+        '---',
+        (d && d.textContent) || '(还没测试)'
+      ].join('\n');
+      try {
+        await navigator.clipboard.writeText(txt);
+        U.toast('诊断信息已复制');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = txt; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); U.toast('诊断信息已复制'); } catch (e2) { U.toast('复制失败，请手动选择文本'); }
+        ta.remove();
+      }
+    });
+
     const test = document.getElementById('btnCfgTest');
     if (test) test.addEventListener('click', async () => {
-      const state = document.getElementById('cfgState');
-      if (state) state.textContent = '测试中…';
+      const btn = test;
+      btn.disabled = true;
+      setState('测试中…');
+      setDiag('① GET  ' + (AI.normBase((document.getElementById('cfgBase') || {}).value) || '?') + '/models\n② POST ' + (AI.normBase((document.getElementById('cfgBase') || {}).value) || '?') + '/chat/completions\n…');
+      AI.saveCfg({
+        base: (document.getElementById('cfgBase') || {}).value || '',
+        key: (document.getElementById('cfgKey') || {}).value || '',
+        model: (document.getElementById('cfgModel') || {}).value || ''
+      });
+      const before = AI.cfg();
+      const bi = document.getElementById('cfgBase'); if (bi) bi.value = before.base;
+      const ki = document.getElementById('cfgKey'); if (ki) ki.value = before.key;
       try {
-        AI.saveCfg({
-          base: (document.getElementById('cfgBase') || {}).value || '',
-          key: (document.getElementById('cfgKey') || {}).value || '',
-          model: (document.getElementById('cfgModel') || {}).value || ''
-        });
         const r = await AI.test();
-        if (state) state.textContent = '连通正常 · ' + r.ms + 'ms · ' + r.text;
+        setState('连通正常 ✅ ' + r.ms + 'ms', 'good');
+        setDiag('✅ 全部通过 · ' + r.ms + 'ms\n' + r.lines.join('\n') + '\n地址：' + r.base + '\n模型：' + before.model);
+        U.toast('接口连通正常');
       } catch (e) {
-        if (state) state.textContent = '失败：' + e.message.slice(0, 120);
+        const msg = String((e && e.message) || e);
+        setState('失败 · ' + (e.status ? 'HTTP ' + e.status : '网络/配置'), 'bad');
+        setDiag('❌ 失败\n' + msg + '\n地址：' + (AI.endpoint() || '（未填）') + '\n模型：' + (before.model || '（未填）'), 'bad');
+      } finally {
+        btn.disabled = false;
       }
     });
 

@@ -150,3 +150,18 @@ node tools/deploy-rth.mjs          # 真实上传，并自动做线上内容校�
 目标地址 `https://kaixuanjun.rth1.xyz/plaque-studio/`。可用 `RTH_USER` / `RTH_DOMAIN` / `RTH_DIR` 覆盖默认值。
 
 > 备注：热铁盒接口的账号名是密钥校验返回的 `username`（不一定等于站点名），脚本会自动带上；站点有 WAF，会拦 `RTHHostHelper` 的 UA 访问网页本身，所以第 4 步校验改用浏览器 UA。
+
+## 9. 接口 401 排查
+
+401 是**服务端明确说 Key 不对**，不是网络问题。按下面顺序看：
+
+| 现象 | 原因 | 改法 |
+|---|---|---|
+| `GET /models → 401` | Key 与 Base URL 不是同一家 | DeepSeek 的 key 只能配 `https://api.deepseek.com/v1`；OpenAI 的只能配 `https://api.openai.com/v1` |
+| 同上 | Key 复制不全（少了尾部几位） | 重新复制；页面里会自动去掉 `Bearer `、空格、引号 |
+| 同上 | 用了第三方中转，却填官方域名/官方 Key | 中转站必须用**中转给的地址 + 中转发的 Key** 成对使用 |
+| `POST ... → 404` | Base URL 多写了 `/chat/completions` | 只填到 `/v1`（脚本已自动截断，但手填要留意） |
+| `网络层失败：请求没到达…` | CORS / 服务未启动 / https 页面调 http | 本地 Ollama 用 `http://localhost:11434/v1` 且启动时设 `OLLAMA_ORIGINS=*`；部署在 https 站点上不能调 `http://localhost` |
+| `400 model not found` | 模型名写错 | 换成该服务商真实模型名，如 `deepseek-chat`、`qwen-plus`、`glm-4-plus` |
+
+设置弹窗里的「测试连通」会先 `GET /models` 验证 Key、再发一次最小对话，两步分别给出状态；「复制诊断」把地址、模型、Key 前缀长度和完整报错拼成一段文本，便于贴给他人排查。
