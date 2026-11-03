@@ -165,3 +165,14 @@ node tools/deploy-rth.mjs          # 真实上传，并自动做线上内容校�
 | `400 model not found` | 模型名写错 | 换成该服务商真实模型名，如 `deepseek-chat`、`qwen-plus`、`glm-4-plus` |
 
 设置弹窗里的「测试连通」会先 `GET /models` 验证 Key、再发一次最小对话，两步分别给出状态；「复制诊断」把地址、模型、Key 前缀长度和完整报错拼成一段文本，便于贴给他人排查。
+
+### DeepSeek 专用自检（绕过前端，直接问官方）
+
+```powershell
+curl.exe -s -o NUL -w "%{http_code}`n" https://api.deepseek.com/v1/models `
+  -H "Authorization: Bearer sk-你的KEY"
+```
+
+- 返回 `200` → Key 有效，问题在前端配置（多半 Base URL 填成了 OpenAI 的地址）。
+- 返回 `401` → Key 本身无效，去 [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys) 重新生成，再复制**完整**的 `sk-` 开头字符串（长度 35）。
+- 返回 `402` → Key 有效但余额不足。

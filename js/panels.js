@@ -1271,6 +1271,21 @@
       state.classList.toggle('is-bad', cls === 'bad');
       state.classList.toggle('is-good', cls === 'good');
     };
+    const setFix = (items) => {
+      const box = document.getElementById('cfgFix');
+      if (!box) return;
+      box.innerHTML = '';
+      if (!items || !items.length) { box.hidden = true; return; }
+      items.forEach((it) => {
+        const b = document.createElement('button');
+        b.className = 'btn ghost';
+        b.type = 'button';
+        b.textContent = it.label;
+        b.addEventListener('click', it.run);
+        box.appendChild(b);
+      });
+      box.hidden = false;
+    };
     const save = document.getElementById('btnCfgSave');
     if (save) save.addEventListener('click', () => {
       const c = AI.saveCfg({
@@ -1333,11 +1348,46 @@
         const r = await AI.test();
         setState('连通正常 ✅ ' + r.ms + 'ms', 'good');
         setDiag('✅ 全部通过 · ' + r.ms + 'ms\n' + r.lines.join('\n') + '\n地址：' + r.base + '\n模型：' + before.model);
+        setFix([]);
         U.toast('接口连通正常');
       } catch (e) {
         const msg = String((e && e.message) || e);
+        const raw = String((e && e.body) || '');
         setState('失败 · ' + (e.status ? 'HTTP ' + e.status : '网络/配置'), 'bad');
         setDiag('❌ 失败\n' + msg + '\n地址：' + (AI.endpoint() || '（未填）') + '\n模型：' + (before.model || '（未填）'), 'bad');
+
+        // 依据报错特征给出「一键改正」
+        const fixes = [];
+        const setBoth = (base, model) => () => {
+          const b = document.getElementById('cfgBase'); if (b) b.value = base;
+          const m = document.getElementById('cfgModel'); if (m) m.value = model;
+          AI.saveCfg({ base, model });
+          setFix([]);
+          test.click();
+        };
+        if (/Incorrect API key provided|api\.openai\.com/i.test(raw + msg) && !/deepseek/i.test(before.base)) {
+          fixes.push({ label: '这是 OpenAI 的报错 → 改用 DeepSeek 地址', run: setBoth('https://api.deepseek.com/v1', 'deepseek-chat') });
+        }
+        if (/deepseek/i.test(msg) && /deepseek/i.test(before.base) === false) {
+          fixes.push({ label: '改用 DeepSeek 官方地址', run: setBoth('https://api.deepseek.com/v1', 'deepseek-chat') });
+        }
+        if (/Authentication Fails/i.test(raw)) {
+          fixes.push({
+            label: '打开 DeepSeek 密钥页重新复制',
+            run: () => window.open('https://platform.deepseek.com/api_keys', '_blank')
+          });
+          fixes.push({ label: '用 deepseek-reasoner 再试一次', run: setBoth(before.base || 'https://api.deepseek.com/v1', 'deepseek-reasoner') });
+        }
+        if (/404/.test(String(e.status))) {
+          fixes.push({ label: '改成 /v1 结尾的地址', run: () => {
+            const kp = AI.PRESETS.find((p) => before.base.indexOf(new URL(p.base).host) >= 0);
+            setBoth(kp ? kp.base : 'https://api.deepseek.com/v1', (kp && kp.model) || 'deepseek-chat')();
+          } });
+        }
+        if (/网络层失败/.test(msg)) {
+          fixes.push({ label: '改用 DeepSeek 在线地址', run: setBoth('https://api.deepseek.com/v1', 'deepseek-chat') });
+        }
+        setFix(fixes);
       } finally {
         btn.disabled = false;
       }

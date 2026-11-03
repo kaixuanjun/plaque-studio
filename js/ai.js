@@ -100,7 +100,29 @@
     return s.replace(/\/+$/, '');
   };
   AI.normKey = function (k) {
-    return String(k || '').trim().replace(/^["'`\s]+|["'`\s]+$/g, '').replace(/^Bearer\s+/i, '').replace(/\s+/g, '');
+    return String(k || '')
+      .replace(/[\u200B-\u200F\u2060\uFEFF]/g, '')   // 零宽字符（网页复制常见）
+      .replace(/[\u0000-\u001F\u007F]/g, '')          // 控制字符 / 换行
+      .replace(/[^\x21-\x7E]/g, '')                   // 只保留可打印 ASCII（Key 都是 ASCII）
+      .replace(/^["'`]+|["'`]+$/g, '')
+      .replace(/^Bearer/i, '')
+      .replace(/^[\s:：]+/, '')
+      .trim();
+  };
+
+  /* 从 401 响应体反推「你打的是哪家的接口」——这是最省事的定位法 */
+  AI.clue401 = function (body) {
+    const b = String(body || '');
+    if (/Incorrect API key provided/i.test(b)) {
+      return '这段报错是 OpenAI 官方接口的格式 —— 说明当前 Base URL 是 OpenAI 的地址，与 DeepSeek 的 Key 不匹配。把 Base URL 改成 https://api.deepseek.com/v1 再试。';
+    }
+    if (/Authentication Fails/i.test(b)) {
+      return '这段报错是 DeepSeek 官方接口的格式 —— 地址是对的，问题在 Key 本身：可能已被删除/重置、复制时漏了尾部几位、或填的不是「API keys」页里的那个 sk- 开头的 Key。';
+    }
+    if (/invalid_api_key/i.test(b)) return '服务端判定该 Key 无效（invalid_api_key）。';
+    if (/invalid_request_error/i.test(b) && /key/i.test(b)) return '服务端判定 Key 无效。';
+    if (/令牌|密钥|key.*无效|鉴权/i.test(b)) return '国内服务商/中转的中文报错：Key 过期、类型不对，或中转需要它自己签发的 Key。';
+    return '';
   };
   AI.endpoint = function () {
     const c = AI.cfg();
@@ -110,10 +132,10 @@
 
   /* ---------- 把 HTTP 错误翻译成人能看懂的诊断 ---------- */
   function explain(status, body, base) {
-    const b = String(body || '').slice(0, 200);
+    const b = String(body || '').slice(0, 240);
     const map = {
       400: '请求被拒（400）。多半是 model 名写错，或该模型不接受当前参数。',
-      401: 'Key 校验失败（401）。三种可能：① Key 复制不全/已失效；② Key 与 Base URL 不是同一家（比如拿 DeepSeek 的 Key 填了 OpenAI 的地址）；③ 这是中转站地址却用了官方 Key。',
+      401: 'Key 校验失败（401）。',
       402: '余额不足（402）。',
       403: '拒绝访问（403）。Key 没有该模型权限，或该地区被限制。',
       404: '路径不存在（404）。Base URL 应填到版本号为止，例如 https://api.deepseek.com/v1 —— 不要带 /chat/completions。当前拼出的是 ' + base + '/chat/completions',
@@ -122,7 +144,13 @@
       502: '网关错误（502），服务商侧问题。',
       503: '服务不可用（503），通常是模型过载。'
     };
-    return (map[status] || ('HTTP ' + status)) + (b ? '\n返回：' + b : '');
+    let out = map[status] || ('HTTP ' + status);
+    if (status === 401) {
+      const clue = AI.clue401(body);
+      out += '\n' + (clue || '三种可能：① Key 复制不全/已失效；② Key 与 Base URL 不是同一家；③ 中转地址配了官方 Key。');
+      out += '\n当前地址：' + base;
+    }
+    return out + (b ? '\n返回：' + b : '');
   }
 
   function netError(e, base) {
@@ -230,10 +258,12 @@
         models = true;
         lines.push('鉴权 GET /models → 200' + (n ? '（可用模型 ' + n + ' 个）' : '') + ' ✅');
       } else if (r.status === 401 || r.status === 403) {
+        const body = await r.text().catch(() => '');
         lines.push('鉴权 GET /models → ' + r.status + ' ❌');
-        lines.push(explain(r.status, await r.text().catch(() => ''), base));
+        lines.push(explain(r.status, body, base));
         const err = new Error(lines.join('\n'));
         err.status = r.status;
+        err.body = body;
         throw err;
       } else {
         models = false;
